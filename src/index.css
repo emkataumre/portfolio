@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url(/fonts/InterVariable.woff2) format("woff2");
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  --color-bg: #fafaf9;
+  --color-surface: #ffffff;
+  --color-text: #18181b;
+  --color-muted: #6b6b70;
+  --color-line: #e6e6e3;
+  --color-accent: #16a34a;
+  --color-accent-soft: color-mix(in oklab, var(--color-accent) 12%, transparent);
+}
