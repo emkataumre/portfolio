@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE: visual direction (ticket 08)</title>
+<!--
+  PROTOTYPE. Throwaway. Ticket 08, visual direction.
+  Three variants of the single page, switchable with ?variant=A|B|C and the bottom bar.
+  Arrow keys cycle variants. Bar also picks theme (system/light/dark) and accent.
+  Copy is placeholder where no ticket has decided it. Cursor Avatar is a static placeholder.
+  Open the file directly in a browser. No build step.
+-->
+<style>
+  /* ---------- shared tokens ---------- */
+  :root {
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --text: #18181b;
+    --muted: #6b6b70;
+    --line: #e6e6e3;
+    --accent: #16a34a;          /* green, overridden by data-accent */
+    --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+    --shadow: 0 1px 2px rgb(0 0 0 / .04), 0 8px 24px rgb(0 0 0 / .06);
+  }
+  html[data-theme="dark"] {
+    --bg: #0f0f10;
+    --surface: #17171a;
+    --text: #ececec;
+    --muted: #9a9aa2;
+    --line: #26262b;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .5);
+  }
+  @media (prefers-color-scheme: dark) {
+    html:not([data-theme]) {
+      --bg: #0f0f10; --surface: #17171a; --text: #ececec; --muted: #9a9aa2; --line: #26262b;
+      --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .5);
+    }
+  }
+  html[data-accent="green"]  { --accent: #16a34a; }
+  html[data-accent="blue"]   { --accent: #2563eb; }
+  html[data-accent="orange"] { --accent: #ea580c; }
+  html[data-accent="violet"] { --accent: #7c3aed; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 96px; /* room for the switcher bar */
+  }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--accent); }
+  h1, h2, h3, p { margin: 0; }
+  .variant { display: none; }
+  .variant.active { display: block; }
+  .muted { color: var(--muted); }
+  .mono { font-family: var(--font-mono); font-size: .8125rem; }
+  .accent { color: var(--accent); }
+
+  /* placeholder avatar: a square, grey silhouette, "Center" label */
+  .avatar {
+    aspect-ratio: 1 / 1;
+    border-radius: 18px;
+    background:
+      radial-gradient(ellipse 34% 30% at 50% 36%, color-mix(in oklab, var(--muted) 45%, transparent), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 100%, color-mix(in oklab, var(--muted) 40%, transparent), transparent 70%),
+      color-mix(in oklab, var(--muted) 14%, var(--surface));
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar::after {
+    content: "Pose: Center";
+    position: absolute; left: 10px; bottom: 8px;
+    font: 500 11px/1 var(--font-mono);
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+  .redacted {
+    display: inline-block; height: .95em; vertical-align: -.15em;
+    background: var(--muted); border-radius: 2px; opacity: .55;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: .4em;
+    padding: .3em .7em; border-radius: 999px;
+    border: 1px solid var(--line); font-size: .8125rem;
+  }
+  .pill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  code.block {
+    display: block; white-space: pre; overflow-x: auto;
+    font-family: var(--font-mono); font-size: .8rem; line-height: 1.5;
+    background: color-mix(in oklab, var(--muted) 8%, var(--surface));
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+  }
+
+  /* =====================================================================
+     VARIANT A: "Card". Centred narrow column. Hero is a profile card like
+     the Framer reference. Sections stack in one measure.
+     ===================================================================== */
+  #A { --measure: 620px; }
+  #A .wrap { max-width: var(--measure); margin: 0 auto; padding: 72px 20px 40px; }
+  #A .hero { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  #A .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 22px;
+    box-shadow: var(--shadow); padding: 20px; width: 300px;
+  }
+  #A .card .avatar { width: 100%; border-radius: 14px; }
+  #A .card h1 { font-size: 1.25rem; font-weight: 700; margin-top: 14px; letter-spacing: -.01em; }
+  #A .card .tag { font-size: .9rem; color: var(--muted); margin-top: 2px; }
+  #A .card .links { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+  #A .lede { font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; line-height: 1.25; margin-top: 36px; max-width: 540px; }
+  #A .now { margin-top: 20px; font-size: 1rem; color: var(--muted); }
+  #A section { margin-top: 80px; }
+  #A h2 { font-size: .8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-bottom: 20px; }
+  #A .principles { display: grid; gap: 18px; }
+  #A .principles p strong { display: block; font-weight: 600; }
+  #A .work { display: grid; gap: 14px; }
+  #A .entry { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  #A .entry h3 { font-size: 1.0625rem; font-weight: 600; }
+  #A .entry .meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  #A .log { display: grid; gap: 10px; }
+  #A .log .row { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
+  #A footer { margin-top: 96px; text-align: center; font-size: .875rem; color: var(--muted); }
+
+  /* =====================================================================
+     VARIANT B: "Editorial". Wide page, split hero (text left, big avatar
+     right). Sections are two columns: label rail left, content right.
+     ===================================================================== */
+  #B .wrap { max-width: 1040px; margin: 0 auto; padding: 48px 32px 40px; }
+  #B nav { display: flex; justify-content: space-between; align-items: center; font-size: .875rem; }
+  #B nav .links { display: flex; gap: 22px; white-space: nowrap; }
+  @media (max-width: 480px) { #B nav .links { gap: 14px; font-size: .8125rem; } }
+  #B .hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 56px; align-items: center; margin-top: 88px; }
+  #B .hero h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 700; letter-spacing: -.035em; line-height: 1.02; }
+  #B .hero .lede { font-size: 1.25rem; color: var(--muted); margin-top: 22px; max-width: 520px; line-height: 1.45; }
+  #B .hero .avatar { width: 100%; max-width: 380px; border-radius: 28px; justify-self: end; }
+  #B .now {
+    margin-top: 72px; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    display: flex; gap: 18px; align-items: center; font-size: .95rem;
+  }
+  #B section { display: grid; grid-template-columns: 200px 1fr; gap: 40px; margin-top: 96px; }
+  #B h2 { font-size: 1rem; font-weight: 600; letter-spacing: -.01em; position: sticky; top: 24px; }
+  #B h2 small { display: block; color: var(--muted); font-weight: 400; margin-top: 4px; }
+  #B .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 32px; }
+  #B .principles h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+  #B .tools { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px; }
+  #B .entry { padding: 22px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; gap: 24px; }
+  #B .entry:last-child { border-bottom: 1px solid var(--line); }
+  #B .entry h3 { font-size: 1.125rem; font-weight: 600; letter-spacing: -.01em; }
+  #B .entry .meta { text-align: right; font-size: .8125rem; color: var(--muted); white-space: nowrap; }
+  #B .log .row { display: grid; grid-template-columns: 110px 1fr; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+  #B footer { margin-top: 120px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: .875rem; color: var(--muted); }
+  @media (max-width: 760px) {
+    #B .hero { grid-template-columns: 1fr; }
+    #B .hero .avatar { justify-self: start; max-width: 260px; order: -1; }
+    #B section { grid-template-columns: 1fr; gap: 16px; }
+    #B h2 { position: static; }
+    #B .principles { grid-template-columns: 1fr; }
+    #B .entry { grid-template-columns: 1fr; }
+    #B .entry .meta { text-align: left; white-space: normal; }
+  }
+
+  /* =====================================================================
+     VARIANT C: "Dossier". Compact, dense, monospace accents. Small avatar
+     inline with the name. Sections are numbered. Reads like a README.
+     ===================================================================== */
+  #C { --measure: 720px; }
+  #C .wrap { max-width: var(--measure); margin: 0 auto; padding: 56px 24px 40px; }
+  #C .hero { display: grid; grid-template-columns: 148px 1fr; gap: 28px; align-items: center; }
+  #C .hero .avatar { width: 148px; border-radius: 12px; }
+  #C .hero h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; }
+  #C .hero .lede { margin-top: 8px; font-size: 1.0625rem; }
+  #C .hero .links { display: flex; gap: 16px; margin-top: 14px; font-family: var(--font-mono); font-size: .8125rem; }
+  #C .hero .links a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+  #C .now {
+    margin-top: 40px; padding: 12px 14px; border-left: 3px solid var(--accent);
+    background: var(--accent-soft); border-radius: 0 8px 8px 0; font-size: .95rem;
+  }
+  #C section { margin-top: 64px; }
+  #C h2 { font-size: 1.125rem; font-weight: 600; display: flex; gap: 12px; align-items: baseline; margin-bottom: 18px; }
+  #C h2 .n { font-family: var(--font-mono); font-size: .8125rem; color: var(--accent); }
+  #C .principles { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  #C .principles > div { padding: 14px 16px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 150px 1fr; gap: 16px; }
+  #C .principles > div:first-child { border-top: 0; }
+  #C .principles strong { font-weight: 600; }
+  #C .tools { margin-top: 16px; font-family: var(--font-mono); font-size: .8125rem; color: var(--muted); }
+  #C .entry { padding: 16px 0; border-top: 1px dashed var(--line); }
+  #C .entry h3 { font-size: 1rem; font-weight: 600; }
+  #C .entry .meta { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); margin-top: 6px; display: flex; gap: 14px; flex-wrap: wrap; }
+  #C .log { font-family: var(--font-mono); font-size: .8125rem; }
+  #C .log .row { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 6px 0; }
+  #C .log .row .d { color: var(--muted); }
+  #C footer { margin-top: 80px; font-family: var(--font-mono); font-size: .8125rem; color: var(--muted); }
+  @media (max-width: 560px) {
+    #C .hero { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- prototype switcher bar (not part of the design) ---------- */
+  #bar {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px;
+    background: #111; color: #fff; border: 1px solid #333;
+    border-radius: 999px; padding: 8px 12px; font: 13px/1 var(--font-mono);
+    box-shadow: 0 10px 30px rgb(0 0 0 / .35); z-index: 99; white-space: nowrap;
+  }
+  #bar button, #bar select {
+    background: #222; color: #fff; border: 1px solid #444; border-radius: 999px;
+    padding: 6px 10px; font: inherit; cursor: pointer;
+  }
+  #bar button:hover { background: #333; }
+  #bar .label { min-width: 150px; text-align: center; }
+  @media (max-width: 480px) { #bar { flex-wrap: wrap; justify-content: center; max-width: 92vw; white-space: normal; border-radius: 18px; } #bar .label { min-width: 0; } }
+  #bar .sep { width: 1px; height: 18px; background: #444; }
+</style>
+</head>
+<body>
+
+<!-- ===================== VARIANT A ===================== -->
+<div id="A" class="variant" data-name="Card">
+  <div class="wrap">
+    <div class="hero">
+      <div class="card">
+        <div class="avatar"></div>
+        <h1>Emil Vladinov</h1>
+        <p class="tag">Software engineer, Sofia</p>
+        <div class="links">
+          <a class="pill" href="#">GitHub</a>
+          <a class="pill" href="#">LinkedIn</a>
+          <a class="pill" href="#">Email</a>
+        </div>
+      </div>
+      <p class="lede">I ship large features in old codebases with coding agents, and the reviews pass.</p>
+      <p class="now"><span class="dot"></span>&nbsp; Now: software engineer at Inact, on a ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.</p>
+    </div>
+
+    <section>
+      <h2>Working Method</h2>
+      <div class="principles">
+        <p><strong>Plan before code.</strong> Every feature starts as a map of decisions. The agent does not write a line until the questions are answered.</p>
+        <p><strong>Grill the plan.</strong> The agent argues against the plan before it builds it. Weak ideas die on paper.</p>
+        <p><strong>Review in passes.</strong> Separate passes for security, dead code, duplication, and error handling. Each one is a fresh context.</p>
+        <p><strong>Verify at runtime.</strong> The agent drives the app, takes screenshots, and queries the database before it says "done".</p>
+      </div>
+      <p class="muted" style="margin-top:24px">Tools: Claude Code, custom skills, MCP servers, a wayfinder and grilling flow. Team practice at Solution 8 is written up in the <a class="accent" href="#">agentic playbook</a>.</p>
+      <code class="block" style="margin-top:20px"># .claude/skills/visual-diff/SKILL.md   (redacted excerpt)
+name: visual-diff
+description: Screenshot a route before and after a change and diff the two.
+---
+1. Start the app on <span class="redacted" style="width:9ch"></span>.
+2. Screenshot <span class="redacted" style="width:14ch"></span> at 1280x800 and 390x844.
+3. Apply the change. Repeat step 2.
+4. Report every pixel region that moved.</code>
+    </section>
+
+    <section>
+      <h2>Selected Work</h2>
+      <div class="work">
+        <div class="entry">
+          <h3>Tasks: an action-management layer for an analytics product</h3>
+          <p class="muted" style="margin-top:6px">Models, routes, migrations, mail, a Redux slice, a composer, and badges on seven grid surfaces.</p>
+          <div class="meta"><span class="pill">21k lines</span><span class="pill">154 files</span><span class="pill on">In final review, September release</span></div>
+        </div>
+        <div class="entry">
+          <h3>References: @ and # mentions across comments and tasks</h3>
+          <p class="muted" style="margin-top:6px">One storage primitive, ranked search endpoints, one chip-aware composer shared by two features.</p>
+          <div class="meta"><span class="pill">5k lines</span><span class="pill on">In final review</span></div>
+        </div>
+        <div class="entry">
+          <h3>Download notifications that survive navigation</h3>
+          <p class="muted" style="margin-top:6px">A persisted bell with orphan recovery.</p>
+          <div class="meta"><span class="pill">1k lines</span><span class="pill on">On main</span></div>
+        </div>
+        <div class="entry">
+          <h3>This site</h3>
+          <p class="muted" style="margin-top:6px">Planned and built with the same method. Every decision is in the Build Log.</p>
+          <div class="meta"><span class="pill on">Public repo</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Build Log</h2>
+      <div class="log">
+        <div class="row"><span class="mono muted">2026-09-02</span><span>Charted the map. Ten tickets. Three research results merged.</span></div>
+        <div class="row"><span class="mono muted">2026-09-02</span><span>Decided the stack: Vite, React, Tailwind, Framer Motion, Cloudflare Pages.</span></div>
+        <div class="row"><span class="mono muted">2026-09-02</span><span>Wrote the domain glossary. Six terms.</span></div>
+      </div>
+      <p style="margin-top:18px"><a class="accent" href="#">Read the full Build Log →</a></p>
+    </section>
+
+    <footer>
+      <p>Emil Vladinov · <a href="#">hello@example.com</a> · <a href="#">GitHub</a> · <a href="#">LinkedIn</a></p>
+    </footer>
+  </div>
+</div>
+
+<!-- ===================== VARIANT B ===================== -->
+<div id="B" class="variant" data-name="Editorial">
+  <div class="wrap">
+    <nav>
+      <strong>Emil Vladinov</strong>
+      <div class="links"><a href="#">Work</a><a href="#">Method</a><a href="#">Build Log</a><a href="#" class="accent">Contact</a></div>
+    </nav>
+
+    <div class="hero">
+      <div>
+        <h1>I ship large features in old codebases with coding agents.</h1>
+        <p class="lede">And the reviews pass. Software engineer in Sofia. Planning, driving, and verifying agent-written code in a ten-year-old Go and React monorepo.</p>
+      </div>
+      <div class="avatar"></div>
+    </div>
+
+    <div class="now">
+      <span class="dot"></span>
+      <span><strong>Now</strong> &nbsp;Software engineer at Inact. Also part of Solution 8, where the whole team works this way.</span>
+    </div>
+
+    <section>
+      <h2>Working Method <small>How agent code gets to main</small></h2>
+      <div>
+        <div class="principles">
+          <div><h3>Plan before code</h3><p class="muted">Every feature starts as a map of decisions. No code until the questions are answered.</p></div>
+          <div><h3>Grill the plan</h3><p class="muted">The agent argues against the plan before it builds it. Weak ideas die on paper.</p></div>
+          <div><h3>Review in passes</h3><p class="muted">Security, dead code, duplication, error handling. Each pass is a fresh context.</p></div>
+          <div><h3>Verify at runtime</h3><p class="muted">The agent drives the app and queries the database before it says "done".</p></div>
+        </div>
+        <div class="tools">
+          <span class="pill">Claude Code</span><span class="pill">Custom skills</span><span class="pill">MCP servers</span><span class="pill">Wayfinder</span><span class="pill">Grilling</span><span class="pill">Playwright</span>
+        </div>
+        <code class="block" style="margin-top:24px"># .claude/skills/visual-diff/SKILL.md   (redacted excerpt)
+1. Start the app on <span class="redacted" style="width:9ch"></span>.
+2. Screenshot <span class="redacted" style="width:14ch"></span> at 1280x800 and 390x844.
+3. Apply the change. Repeat step 2.
+4. Report every pixel region that moved.</code>
+        <p class="muted" style="margin-top:16px">Team practice at Solution 8 is written up in the <a class="accent" href="#">agentic playbook</a>.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Selected Work <small>Inact, 2026</small></h2>
+      <div>
+        <div class="entry">
+          <div><h3>Tasks: an action-management layer for an analytics product</h3><p class="muted" style="margin-top:6px">Models, routes, migrations, mail, a Redux slice, a composer, and badges on seven grid surfaces.</p></div>
+          <div class="meta">21k lines · 154 files<br><span class="accent">In final review, September release</span></div>
+        </div>
+        <div class="entry">
+          <div><h3>References: @ and # mentions</h3><p class="muted" style="margin-top:6px">One storage primitive, ranked search endpoints, one composer shared by comments and tasks.</p></div>
+          <div class="meta">5k lines<br><span class="accent">In final review</span></div>
+        </div>
+        <div class="entry">
+          <div><h3>Download notifications that survive navigation</h3><p class="muted" style="margin-top:6px">A persisted bell with orphan recovery.</p></div>
+          <div class="meta">1k lines<br><span class="accent">On main</span></div>
+        </div>
+        <div class="entry">
+          <div><h3>This site</h3><p class="muted" style="margin-top:6px">Planned and built with the same method. Every decision is in the Build Log.</p></div>
+          <div class="meta"><span class="accent">Public repo</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Build Log <small>The one thing you can verify</small></h2>
+      <div class="log">
+        <div class="row"><span class="mono muted">2026-09-02</span><span>Charted the map. Ten tickets. Three research results merged.</span></div>
+        <div class="row"><span class="mono muted">2026-09-02</span><span>Decided the stack: Vite, React, Tailwind, Framer Motion, Cloudflare Pages.</span></div>
+        <div class="row"><span class="mono muted">2026-09-02</span><span>Wrote the domain glossary. Six terms.</span></div>
+        <p style="margin-top:18px"><a class="accent" href="#">Read the full Build Log →</a></p>
+      </div>
+    </section>
+
+    <footer>
+      <span>Emil Vladinov · Sofia</span>
+      <span><a href="#">hello@example.com</a> · <a href="#">GitHub</a> · <a href="#">LinkedIn</a></span>
+    </footer>
+  </div>
+</div>
+
+<!-- ===================== VARIANT C ===================== -->
+<div id="C" class="variant" data-name="Dossier">
+  <div class="wrap">
+    <div class="hero">
+      <div class="avatar"></div>
+      <div>
+        <h1>Emil Vladinov</h1>
+        <p class="lede">Software engineer. I ship large features in old codebases with coding agents, and the reviews pass.</p>
+        <div class="links"><a href="#">github</a><a href="#">linkedin</a><a href="#">email</a><a href="#" class="accent">build-log</a></div>
+      </div>
+    </div>
+
+    <div class="now"><strong>Now:</strong> software engineer at Inact, Sofia. Ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.</div>
+
+    <section>
+      <h2><span class="n">01</span> Working Method</h2>
+      <div class="principles">
+        <div><strong>Plan before code</strong><span class="muted">Every feature starts as a map of decisions. No code until the questions are answered.</span></div>
+        <div><strong>Grill the plan</strong><span class="muted">The agent argues against the plan before it builds it. Weak ideas die on paper.</span></div>
+        <div><strong>Review in passes</strong><span class="muted">Security, dead code, duplication, error handling. Each pass is a fresh context.</span></div>
+        <div><strong>Verify at runtime</strong><span class="muted">The agent drives the app and queries the database before it says "done".</span></div>
+      </div>
+      <p class="tools">tools: claude-code · skills · mcp · wayfinder · grilling · playwright · <a class="accent" href="#">solution8/agentic-playbook</a></p>
+      <code class="block" style="margin-top:16px"># .claude/skills/visual-diff/SKILL.md   (redacted excerpt)
+1. Start the app on <span class="redacted" style="width:9ch"></span>.
+2. Screenshot <span class="redacted" style="width:14ch"></span> at 1280x800 and 390x844.
+3. Apply the change. Repeat step 2.
+4. Report every pixel region that moved.</code>
+    </section>
+
+    <section>
+      <h2><span class="n">02</span> Selected Work</h2>
+      <div class="entry">
+        <h3>Tasks: an action-management layer for an analytics product</h3>
+        <p class="muted" style="margin-top:4px">Models, routes, migrations, mail, a Redux slice, a composer, and badges on seven grid surfaces.</p>
+        <div class="meta"><span>+21k lines</span><span>154 files</span><span>go, react</span><span class="accent">final review · sept release</span></div>
+      </div>
+      <div class="entry">
+        <h3>References: @ and # mentions</h3>
+        <p class="muted" style="margin-top:4px">One storage primitive, ranked search endpoints, one composer shared by comments and tasks.</p>
+        <div class="meta"><span>+5k lines</span><span class="accent">final review</span></div>
+      </div>
+      <div class="entry">
+        <h3>Download notifications that survive navigation</h3>
+        <p class="muted" style="margin-top:4px">A persisted bell with orphan recovery.</p>
+        <div class="meta"><span>+1k lines</span><span class="accent">on main</span></div>
+      </div>
+      <div class="entry">
+        <h3>This site</h3>
+        <p class="muted" style="margin-top:4px">Planned and built with the same method. Every decision is in the Build Log.</p>
+        <div class="meta"><span class="accent">public repo</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="n">03</span> Build Log</h2>
+      <div class="log">
+        <div class="row"><span class="d">2026-09-02</span><span>Charted the map. Ten tickets. Three research results merged.</span></div>
+        <div class="row"><span class="d">2026-09-02</span><span>Decided the stack: Vite, React, Tailwind, Framer Motion, Cloudflare Pages.</span></div>
+        <div class="row"><span class="d">2026-09-02</span><span>Wrote the domain glossary. Six terms.</span></div>
+        <div class="row"><span class="d"></span><a class="accent" href="#">full log →</a></div>
+      </div>
+    </section>
+
+    <footer>emil vladinov · <a href="#">hello@example.com</a> · <a href="#">github</a> · <a href="#">linkedin</a></footer>
+  </div>
+</div>
+
+<!-- ===================== SWITCHER (prototype only) ===================== -->
+<div id="bar">
+  <button id="prev" title="Previous (←)">←</button>
+  <span class="label" id="label"></span>
+  <button id="next" title="Next (→)">→</button>
+  <span class="sep"></span>
+  <select id="theme" title="Theme">
+    <option value="system">system</option><option value="light">light</option><option value="dark">dark</option>
+  </select>
+  <select id="accent" title="Accent">
+    <option value="green">green</option><option value="blue">blue</option><option value="orange">orange</option><option value="violet">violet</option>
+  </select>
+</div>
+
+<script>
+  const variants = ['A', 'B', 'C'];
+  const params = new URLSearchParams(location.search);
+  let current = variants.includes(params.get('variant')) ? params.get('variant') : 'A';
+
+  function apply() {
+    document.querySelectorAll('.variant').forEach(el => el.classList.toggle('active', el.id === current));
+    const name = document.getElementById(current).dataset.name;
+    document.getElementById('label').textContent = `${current} (${name})`;
+    const p = new URLSearchParams(location.search);
+    p.set('variant', current);
+    history.replaceState(null, '', '?' + p.toString());
+    window.scrollTo(0, 0);
+  }
+  function step(d) {
+    current = variants[(variants.indexOf(current) + d + variants.length) % variants.length];
+    apply();
+  }
+  document.getElementById('prev').onclick = () => step(-1);
+  document.getElementById('next').onclick = () => step(1);
+  document.addEventListener('keydown', e => {
+    const t = e.target;
+    if (t.matches('input, textarea, select, [contenteditable]')) return;
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+  });
+
+  const theme = document.getElementById('theme');
+  const accent = document.getElementById('accent');
+  theme.value = params.get('theme') || 'system';
+  accent.value = params.get('accent') || 'green';
+  function applyPrefs() {
+    const html = document.documentElement;
+    if (theme.value === 'system') html.removeAttribute('data-theme'); else html.dataset.theme = theme.value;
+    html.dataset.accent = accent.value;
+    const p = new URLSearchParams(location.search);
+    p.set('theme', theme.value); p.set('accent', accent.value);
+    history.replaceState(null, '', '?' + p.toString());
+  }
+  theme.onchange = applyPrefs;
+  accent.onchange = applyPrefs;
+
+  apply();
+  applyPrefs();
+</script>
+</body>
+</html>
