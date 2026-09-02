@@ -36,6 +36,7 @@ A build-ready spec at `.scratch/portfolio-spec/spec.md` for Emil's personal port
 - [Cursor Avatar port to React + Framer Motion](issues/02-cursor-avatar-port.md): a hook plus one square frame in `motion/react`. Dot-score Pose selection with threshold, dead zone, and hysteresis. Nine stacked WebP images at 560 px. Research recommends idle drift on touch.
 - [Build Log generation from git history](issues/06-build-log-generation.md): a prebuild script turns `git log` into JSON, human notes live in one markdown file keyed by day, and the build never fails when history is missing.
 - [Stack scaffold and Cloudflare Pages deploy](issues/07-stack-scaffold-and-deploy.md): Vite 8, React 19, TypeScript 6, Tailwind 4 through the Vite plugin, `motion` 13. Cloudflare Pages by Git with the React (Vite) preset. `MotionConfig reducedMotion="user"` at the root.
+- [Visual direction prototype](issues/08-visual-direction-prototype.md): variant B, Editorial. Light baseline, green accent, split hero with a 380 px avatar, sticky label rail sections, ruled rows. Tokens are on the ticket. Prototype on branch `prototype/visual-direction`.
 
 ## Not yet specified
 
