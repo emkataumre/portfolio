@@ -13,6 +13,7 @@ A build-ready spec at `.scratch/portfolio-spec/spec.md` for Emil's personal port
 - Domain glossary: `CONTEXT.md` at the repo root. Use its terms: Reader, Cursor Avatar, Pose, Working Method, Testimony, Build Log.
 - Skills: `grilling` and `domain-modeling` for grilling tickets. `prototype` for prototype tickets. `research` for research tickets. `ste-writing` for any copy that lands in the spec.
 - Reader: an engineering lead or senior peer. A recruiter must get the gist from the top fold.
+- Prototype as you go. Every ticket that decides something visible produces a rough visual to react to before the decision is recorded. Emil does not decide visuals from text. Copy tickets are worked inside the visual prototype, not before it.
 - Tone rule: state Testimony plainly. Never dress a private claim up as proof. The Build Log is the only verifiable artifact.
 - Reference assets: `assets/cursor-avatar-reference.md` (the Framer demo and its prompt), `assets/inact-scan.md` (what Inact is and what Emil delivered there). The scan is raw material, not copy.
 - This map and its tickets are public. They ship in the site repo as part of the Build Log. Keep customer names, colleague names, secrets, and internal issue numbers out.
