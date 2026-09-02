@@ -141,10 +141,9 @@
   #B .hero h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 700; letter-spacing: -.035em; line-height: 1.02; }
   #B .hero .lede { font-size: 1.25rem; color: var(--muted); margin-top: 22px; max-width: 520px; line-height: 1.45; }
   #B .hero .avatar { width: 100%; max-width: 380px; border-radius: 28px; justify-self: end; }
-  #B .now {
-    margin-top: 72px; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    display: flex; gap: 18px; align-items: baseline; font-size: .95rem; line-height: 1.5;
-  }
+  #B .now { margin-top: 72px; border-top: 1px solid var(--line); font-size: .95rem; line-height: 1.5; }
+  #B .now .row { display: grid; grid-template-columns: 8px 92px 1fr; gap: 14px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  #B .now .label { white-space: nowrap; }
   #B section { display: grid; grid-template-columns: 200px 1fr; gap: 40px; margin-top: 96px; }
   #B h2 { font-size: 1rem; font-weight: 600; letter-spacing: -.01em; position: sticky; top: 24px; }
   #B h2 small { display: block; color: var(--muted); font-weight: 400; margin-top: 4px; }
@@ -318,8 +317,8 @@ description: Screenshot a route before and after a change and diff the two.
     </div>
 
     <div class="now">
-      <span class="dot"></span>
-      <span><strong>Now</strong> &nbsp;Software engineer at Inact. Also part of Solution 8, where the whole team works this way.</span>
+      <div class="row"><span class="dot"></span><strong class="label">Now</strong><span class="text"></span></div>
+      <div class="row"><span class="dot"></span><strong class="label">Also</strong><span class="text"></span></div>
     </div>
 
     <section>
@@ -465,6 +464,7 @@ description: Screenshot a route before and after a change and diff the two.
   <select id="copy" title="Hero copy (variant B)"></select>
   <select id="now" title="Now strip (variant B)"></select>
   <select id="s8" title="Solution 8 line (variant B)"></select>
+  <select id="labels" title="Row labels (variant B)"></select>
 </div>
 
 <script>
@@ -540,9 +540,18 @@ description: Screenshot a route before and after a change and diff the two.
     'inside-team': { name: 's8: inside a team', text: 'At Solution 8 I do the same thing inside a team: internal tools built in agentic workflows with other developers, and open source material on agentic programming.' },
   };
   const nows = {
-    'speed': { name: 'now: agent speed', html: '<strong>Now</strong> &nbsp;Software engineer at Inact, shipping large features into a ten-year-old codebase at agent speed. ' },
-    'land': { name: 'now: land fast', html: '<strong>Now</strong> &nbsp;Software engineer at Inact. I use agentic coding to land large features fast in a large legacy codebase. ' },
+    'speed': { name: 'now: agent speed', text: 'Software engineer at Inact, shipping large features into a ten-year-old codebase at agent speed.' },
+    'land': { name: 'now: land fast', text: 'Software engineer at Inact. I use agentic coding to land large features fast in a large legacy codebase.' },
   };
+  const labelSets = {
+    'also': ['Now', 'Also'],
+    'parallel': ['Now', 'In parallel'],
+    'concurrently': ['Now', 'Concurrently'],
+  };
+  const labelSel = document.getElementById('labels');
+  for (const k in labelSets) labelSel.add(new Option(labelSets[k].join(' / '), k));
+  labelSel.value = labelSets[params.get('labels')] ? params.get('labels') : 'parallel';
+  labelSel.onchange = () => applyCopy();
   const copySel = document.getElementById('copy');
   const nowSel = document.getElementById('now');
   const s8Sel = document.getElementById('s8');
@@ -551,16 +560,20 @@ description: Screenshot a route before and after a change and diff the two.
   s8Sel.onchange = () => applyCopy();
   for (const k in copies) copySel.add(new Option(copies[k].name, k));
   for (const k in nows) nowSel.add(new Option(nows[k].name, k));
-  copySel.value = copies[params.get('copy')] ? params.get('copy') : 'every-day';
-  nowSel.value = nows[params.get('now')] ? params.get('now') : 'speed';
+  copySel.value = copies[params.get('copy')] ? params.get('copy') : 'real-software';
+  nowSel.value = nows[params.get('now')] ? params.get('now') : 'land';
   function applyCopy() {
     const c = copies[copySel.value];
     const B = document.getElementById('B');
     B.querySelector('.hero h1').textContent = c.h1;
     B.querySelector('.hero .lede').textContent = c.lede;
-    B.querySelector('.now span:last-child').innerHTML = nows[nowSel.value].html + s8s[s8Sel.value].text;
+    const rows = B.querySelectorAll('.now .row');
+    rows[0].querySelector('.label').textContent = labelSets[labelSel.value][0];
+    rows[0].querySelector('.text').textContent = nows[nowSel.value].text;
+    rows[1].querySelector('.label').textContent = labelSets[labelSel.value][1];
+    rows[1].querySelector('.text').textContent = s8s[s8Sel.value].text;
     const p = new URLSearchParams(location.search);
-    p.set('copy', copySel.value); p.set('now', nowSel.value); p.set('s8', s8Sel.value);
+    p.set('copy', copySel.value); p.set('now', nowSel.value); p.set('s8', s8Sel.value); p.set('labels', labelSel.value);
     history.replaceState(null, '', '?' + p.toString());
   }
   copySel.onchange = applyCopy;
