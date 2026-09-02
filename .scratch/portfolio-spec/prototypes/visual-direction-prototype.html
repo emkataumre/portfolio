@@ -143,7 +143,7 @@
   #B .hero .avatar { width: 100%; max-width: 380px; border-radius: 28px; justify-self: end; }
   #B .now {
     margin-top: 72px; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    display: flex; gap: 18px; align-items: center; font-size: .95rem;
+    display: flex; gap: 18px; align-items: baseline; font-size: .95rem; line-height: 1.5;
   }
   #B section { display: grid; grid-template-columns: 200px 1fr; gap: 40px; margin-top: 96px; }
   #B h2 { font-size: 1rem; font-weight: 600; letter-spacing: -.01em; position: sticky; top: 24px; }
@@ -463,7 +463,7 @@ description: Screenshot a route before and after a change and diff the two.
     <option value="green">green</option><option value="blue">blue</option><option value="orange">orange</option><option value="violet">violet</option>
   </select>
   <select id="copy" title="Hero copy (variant B)"></select>
-  <select id="links" title="Nav links (variant B)"></select>
+  <select id="now" title="Now strip (variant B)"></select>
 </div>
 
 <script>
@@ -508,58 +508,53 @@ description: Screenshot a route before and after a change and diff the two.
   theme.onchange = applyPrefs;
   accent.onchange = applyPrefs;
 
-  // Hero copy candidates for variant B. ?copy=<key>&links=<key>
+  // Hero copy candidates for variant B. ?copy=<key>&now=<key>
+  const lede = 'The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. I own the result. Software engineer in Copenhagen.';
   const copies = {
-    'draft': {
-      name: 'draft (reviews pass)',
-      h1: 'I ship large features in old codebases with coding agents.',
-      lede: 'And the reviews pass. Software engineer in Sofia. Planning, driving, and verifying agent-written code in a ten-year-old Go and React monorepo.',
-      now: '<strong>Now</strong> &nbsp;Software engineer at Inact. Also part of Solution 8, where the whole team works this way.',
+    'every-day': {
+      name: 'every day, not an experiment',
+      h1: 'I build software with AI agents. Every day, not as an experiment.',
+      lede,
     },
-    'default': {
-      name: 'default, not a hack',
-      h1: 'I ship large features in old codebases with coding agents.',
-      lede: 'Not as a productivity hack. This is how I work every day. I plan the change, drive the agent, review every line, and verify the result at runtime. Software engineer in Sofia.',
-      now: '<strong>Now</strong> &nbsp;Software engineer at Inact, on a ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.',
+    'own-result': {
+      name: 'AI writes, I own',
+      h1: 'AI writes the code. I own the result.',
+      lede: 'Software engineer in Copenhagen. I plan, drive, review, and verify agent-written code, then ship it into real production systems.',
     },
-    'discipline': {
-      name: 'engineering discipline',
-      h1: 'I ship large features in old codebases with coding agents.',
-      lede: 'The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. I own the result. Software engineer in Sofia.',
-      now: '<strong>Now</strong> &nbsp;Software engineer at Inact, on a ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.',
+    'real-software': {
+      name: 'real software',
+      h1: 'Real software, built with AI agents.',
+      lede,
     },
-    'both': {
-      name: 'both angles in the headline',
-      h1: 'I ship large features in old codebases. Coding agents are my default, not a shortcut.',
-      lede: 'Software engineer in Sofia. I apply the usual engineering discipline to agent-written code: plan, drive, review, verify.',
-      now: '<strong>Now</strong> &nbsp;Software engineer at Inact, on a ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.',
+    'engineer-first': {
+      name: 'engineer who builds with agents',
+      h1: 'Software engineer. I build with AI agents.',
+      lede,
     },
   };
-  const linkSets = {
-    'four': ['Work', 'Method', 'Build Log', 'Contact'],
-    'three': ['Method', 'Build Log', 'Contact'],
-    'external': ['GitHub', 'Build Log', 'Email'],
+  const s8 = 'At Solution 8 I build internal tools with other developers who work the same way, and open source material that teaches agentic programming.';
+  const nows = {
+    'speed': { name: 'now: agent speed', html: '<strong>Now</strong> &nbsp;Software engineer at Inact, shipping large features into a ten-year-old codebase at agent speed. ' + s8 },
+    'land': { name: 'now: land fast', html: '<strong>Now</strong> &nbsp;Software engineer at Inact. I use agentic coding to land large features fast in a large legacy codebase. ' + s8 },
   };
   const copySel = document.getElementById('copy');
-  const linksSel = document.getElementById('links');
+  const nowSel = document.getElementById('now');
   for (const k in copies) copySel.add(new Option(copies[k].name, k));
-  for (const k in linkSets) linksSel.add(new Option(linkSets[k].join(' / '), k));
-  copySel.value = copies[params.get('copy')] ? params.get('copy') : 'draft';
-  linksSel.value = linkSets[params.get('links')] ? params.get('links') : 'four';
+  for (const k in nows) nowSel.add(new Option(nows[k].name, k));
+  copySel.value = copies[params.get('copy')] ? params.get('copy') : 'every-day';
+  nowSel.value = nows[params.get('now')] ? params.get('now') : 'speed';
   function applyCopy() {
     const c = copies[copySel.value];
     const B = document.getElementById('B');
     B.querySelector('.hero h1').textContent = c.h1;
     B.querySelector('.hero .lede').textContent = c.lede;
-    B.querySelector('.now span:last-child').innerHTML = c.now;
-    const ls = linkSets[linksSel.value];
-    B.querySelector('nav .links').innerHTML = ls.map((l, i) => `<a href="#"${i === ls.length - 1 ? ' class="accent"' : ''}>${l}</a>`).join('');
+    B.querySelector('.now span:last-child').innerHTML = nows[nowSel.value].html;
     const p = new URLSearchParams(location.search);
-    p.set('copy', copySel.value); p.set('links', linksSel.value);
+    p.set('copy', copySel.value); p.set('now', nowSel.value);
     history.replaceState(null, '', '?' + p.toString());
   }
   copySel.onchange = applyCopy;
-  linksSel.onchange = applyCopy;
+  nowSel.onchange = applyCopy;
 
   apply();
   applyPrefs();
