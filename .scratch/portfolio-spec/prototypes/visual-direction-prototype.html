@@ -462,6 +462,8 @@ description: Screenshot a route before and after a change and diff the two.
   <select id="accent" title="Accent">
     <option value="green">green</option><option value="blue">blue</option><option value="orange">orange</option><option value="violet">violet</option>
   </select>
+  <select id="copy" title="Hero copy (variant B)"></select>
+  <select id="links" title="Nav links (variant B)"></select>
 </div>
 
 <script>
@@ -506,8 +508,62 @@ description: Screenshot a route before and after a change and diff the two.
   theme.onchange = applyPrefs;
   accent.onchange = applyPrefs;
 
+  // Hero copy candidates for variant B. ?copy=<key>&links=<key>
+  const copies = {
+    'draft': {
+      name: 'draft (reviews pass)',
+      h1: 'I ship large features in old codebases with coding agents.',
+      lede: 'And the reviews pass. Software engineer in Sofia. Planning, driving, and verifying agent-written code in a ten-year-old Go and React monorepo.',
+      now: '<strong>Now</strong> &nbsp;Software engineer at Inact. Also part of Solution 8, where the whole team works this way.',
+    },
+    'default': {
+      name: 'default, not a hack',
+      h1: 'I ship large features in old codebases with coding agents.',
+      lede: 'Not as a productivity hack. This is how I work every day. I plan the change, drive the agent, review every line, and verify the result at runtime. Software engineer in Sofia.',
+      now: '<strong>Now</strong> &nbsp;Software engineer at Inact, on a ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.',
+    },
+    'discipline': {
+      name: 'engineering discipline',
+      h1: 'I ship large features in old codebases with coding agents.',
+      lede: 'The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. I own the result. Software engineer in Sofia.',
+      now: '<strong>Now</strong> &nbsp;Software engineer at Inact, on a ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.',
+    },
+    'both': {
+      name: 'both angles in the headline',
+      h1: 'I ship large features in old codebases. Coding agents are my default, not a shortcut.',
+      lede: 'Software engineer in Sofia. I apply the usual engineering discipline to agent-written code: plan, drive, review, verify.',
+      now: '<strong>Now</strong> &nbsp;Software engineer at Inact, on a ten-year-old Go and React monorepo. Also part of Solution 8, where the whole team works this way.',
+    },
+  };
+  const linkSets = {
+    'four': ['Work', 'Method', 'Build Log', 'Contact'],
+    'three': ['Method', 'Build Log', 'Contact'],
+    'external': ['GitHub', 'Build Log', 'Email'],
+  };
+  const copySel = document.getElementById('copy');
+  const linksSel = document.getElementById('links');
+  for (const k in copies) copySel.add(new Option(copies[k].name, k));
+  for (const k in linkSets) linksSel.add(new Option(linkSets[k].join(' / '), k));
+  copySel.value = copies[params.get('copy')] ? params.get('copy') : 'draft';
+  linksSel.value = linkSets[params.get('links')] ? params.get('links') : 'four';
+  function applyCopy() {
+    const c = copies[copySel.value];
+    const B = document.getElementById('B');
+    B.querySelector('.hero h1').textContent = c.h1;
+    B.querySelector('.hero .lede').textContent = c.lede;
+    B.querySelector('.now span:last-child').innerHTML = c.now;
+    const ls = linkSets[linksSel.value];
+    B.querySelector('nav .links').innerHTML = ls.map((l, i) => `<a href="#"${i === ls.length - 1 ? ' class="accent"' : ''}>${l}</a>`).join('');
+    const p = new URLSearchParams(location.search);
+    p.set('copy', copySel.value); p.set('links', linksSel.value);
+    history.replaceState(null, '', '?' + p.toString());
+  }
+  copySel.onchange = applyCopy;
+  linksSel.onchange = applyCopy;
+
   apply();
   applyPrefs();
+  applyCopy();
 </script>
 </body>
 </html>
