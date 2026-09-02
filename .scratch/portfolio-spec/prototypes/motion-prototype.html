@@ -235,7 +235,7 @@
 
   // ---------- prefs ----------
   const touchSel = $('#touch'), reducedBox = $('#reduced'), debugBox = $('#debug'), pixelSel = $('#pixel');
-  pixelSel.value = params.get('pixel') || '4';
+  pixelSel.value = params.get('pixel') || '3';
   touchSel.value = params.get('touch') || 'auto';
   reducedBox.checked = params.get('reduced') === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;
   debugBox.checked = params.get('debug') === '1';
