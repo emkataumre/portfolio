@@ -33,13 +33,17 @@ A build-ready spec at `.scratch/portfolio-spec/spec.md` for Emil's personal port
 - Build Log is generated from the site repo's git history with short human annotations. The repo is public on GitHub. Git history starts today, with this planning.
 - Reduced motion is honoured: the avatar goes static, reveals become fades. Touch devices: the avatar follows the last tap or drifts slowly between Poses.
 - English only. No analytics.
+- [Cursor Avatar port to React + Framer Motion](issues/02-cursor-avatar-port.md): a hook plus one square frame in `motion/react`. Dot-score Pose selection with threshold, dead zone, and hysteresis. Nine stacked WebP images at 560 px. Research recommends idle drift on touch.
+- [Build Log generation from git history](issues/06-build-log-generation.md): a prebuild script turns `git log` into JSON, human notes live in one markdown file keyed by day, and the build never fails when history is missing.
+- [Stack scaffold and Cloudflare Pages deploy](issues/07-stack-scaffold-and-deploy.md): Vite 8, React 19, TypeScript 6, Tailwind 4 through the Vite plugin, `motion` 13. Cloudflare Pages by Git with the React (Vite) preset. `MotionConfig reducedMotion="user"` at the root.
 
 ## Not yet specified
 
-- Build Log entry style and the first entries. Depends on the generation mechanism.
+- Build Log details: day-grouping timezone (proposal Europe/Sofia), whether merge commits appear (proposal no), and the first entries and their annotation style.
+- Build Log route: the two research results disagree. One recommends a second HTML entry in the Vite multi-page build, the other a pathname switch with the automatic SPA fallback. Pick one in the spec.
+- Small stack picks: TypeScript 6 template pin or 7, and a project-scope `.mcp.json` for Playwright or the user-scope config.
 - Contact section: which links, how email is shown, spam protection.
 - SEO and social: page title, meta description, Open Graph image.
-- Final touch behaviour for the avatar: last tap or idle drift. Depends on the avatar research.
 - Which redacted artifacts from Emil's setup go on the site, and how redaction is done. Depends on the Working Method ticket.
 - How the `.scratch` map appears in the Build Log: raw files or rendered.
 
