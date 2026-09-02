@@ -4,7 +4,7 @@ type SectionProps = {
   id: string
   label: string
   subline: string
-  /** Heading element for the label. h2 by default, h1 on the Build Log page. */
+  /** Each page has one h1. The rail label is the h1 on a page without a hero. Default h2. */
   headingLevel?: 'h1' | 'h2'
   children: ReactNode
 }
