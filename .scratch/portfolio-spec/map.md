@@ -2,7 +2,7 @@
 
 Label: wayfinder:map
 Created: 2026-09-02
-Tracker: local markdown (`.scratch/portfolio-spec/`)
+Tracker: GitHub issues, map is https://github.com/emkataumre/portfolio/issues/1. This file and `issues/` are the archive of the charting session. Status, claims, and blocking live on GitHub.
 
 ## Destination
 
