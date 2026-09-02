@@ -464,6 +464,7 @@ description: Screenshot a route before and after a change and diff the two.
   </select>
   <select id="copy" title="Hero copy (variant B)"></select>
   <select id="now" title="Now strip (variant B)"></select>
+  <select id="s8" title="Solution 8 line (variant B)"></select>
 </div>
 
 <script>
@@ -532,13 +533,22 @@ description: Screenshot a route before and after a change and diff the two.
       lede,
     },
   };
-  const s8 = 'At Solution 8 I build internal tools with other developers who work the same way, and open source material that teaches agentic programming.';
+  const s8s = {
+    'team-workflow': { name: 's8: team workflow', text: 'At Solution 8 I work in a team that runs on agentic workflows: shared skills, shared conventions, agent-written code reviewed by peers. We build internal tools and open source material on agentic programming.' },
+    'collaborate': { name: 's8: collaborate', text: 'At Solution 8 I collaborate with other agentic developers on internal tools and on open source material that teaches agentic programming.' },
+    'team-sport': { name: 's8: team sport', text: 'At Solution 8, agentic coding is a team sport. I build internal tools with developers who work the same way, and write open source material on agentic programming.' },
+    'inside-team': { name: 's8: inside a team', text: 'At Solution 8 I do the same thing inside a team: internal tools built in agentic workflows with other developers, and open source material on agentic programming.' },
+  };
   const nows = {
-    'speed': { name: 'now: agent speed', html: '<strong>Now</strong> &nbsp;Software engineer at Inact, shipping large features into a ten-year-old codebase at agent speed. ' + s8 },
-    'land': { name: 'now: land fast', html: '<strong>Now</strong> &nbsp;Software engineer at Inact. I use agentic coding to land large features fast in a large legacy codebase. ' + s8 },
+    'speed': { name: 'now: agent speed', html: '<strong>Now</strong> &nbsp;Software engineer at Inact, shipping large features into a ten-year-old codebase at agent speed. ' },
+    'land': { name: 'now: land fast', html: '<strong>Now</strong> &nbsp;Software engineer at Inact. I use agentic coding to land large features fast in a large legacy codebase. ' },
   };
   const copySel = document.getElementById('copy');
   const nowSel = document.getElementById('now');
+  const s8Sel = document.getElementById('s8');
+  for (const k in s8s) s8Sel.add(new Option(s8s[k].name, k));
+  s8Sel.value = s8s[params.get('s8')] ? params.get('s8') : 'team-workflow';
+  s8Sel.onchange = () => applyCopy();
   for (const k in copies) copySel.add(new Option(copies[k].name, k));
   for (const k in nows) nowSel.add(new Option(nows[k].name, k));
   copySel.value = copies[params.get('copy')] ? params.get('copy') : 'every-day';
@@ -548,9 +558,9 @@ description: Screenshot a route before and after a change and diff the two.
     const B = document.getElementById('B');
     B.querySelector('.hero h1').textContent = c.h1;
     B.querySelector('.hero .lede').textContent = c.lede;
-    B.querySelector('.now span:last-child').innerHTML = nows[nowSel.value].html;
+    B.querySelector('.now span:last-child').innerHTML = nows[nowSel.value].html + s8s[s8Sel.value].text;
     const p = new URLSearchParams(location.search);
-    p.set('copy', copySel.value); p.set('now', nowSel.value);
+    p.set('copy', copySel.value); p.set('now', nowSel.value); p.set('s8', s8Sel.value);
     history.replaceState(null, '', '?' + p.toString());
   }
   copySel.onchange = applyCopy;
