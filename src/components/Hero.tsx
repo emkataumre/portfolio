@@ -9,14 +9,14 @@ export type Variant = keyof typeof variants
 
 function Hero({ variant }: { variant: Variant }) {
   const [open, setOpen] = useState(false)
-  const PANEL = window.matchMedia('(min-width: 760px)').matches ? 240 : 0
+  const PANEL = window.matchMedia('(min-width: 760px)').matches ? 200 : 0
   return (
     <section className="mt-22 grid grid-cols-1 items-center gap-14 min-[760px]:grid-cols-[1.3fr_1fr]">
       <div>
         <h1 className="text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.02] font-bold tracking-[-0.035em]">
           Real software, built with AI agents.
         </h1>
-        <p className="mt-5.5 max-w-130 text-xl leading-[1.45] text-muted">
+        <p className="mt-5.5 max-w-[470px] text-xl leading-[1.45] text-muted">
           The agents write the code. The engineering does not change: small steps, tests,
           review, and runtime verification. I own the result. Software engineer in Copenhagen.
         </p>
@@ -56,7 +56,7 @@ function Hero({ variant }: { variant: Variant }) {
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
               className="absolute top-full left-0 z-20 mt-3 overflow-hidden rounded-[28px] border border-line bg-surface min-[760px]:-top-px min-[760px]:left-full min-[760px]:mt-0 min-[760px]:h-[calc(100%+2px)] min-[760px]:rounded-l-none min-[760px]:border-l-0"
             >
-              <div className="flex h-full w-60 flex-col justify-between py-4 pr-5 pl-3 min-[760px]:py-4.5">
+              <div className="flex h-full w-50 flex-col justify-between py-4 pr-5 pl-3 min-[760px]:py-4.5">
                 <div>
                   <p className="text-[1.05rem] font-semibold tracking-[-0.01em]">Emil Vladinov</p>
                   <p className="mt-1 text-[0.95rem] leading-[1.45] text-muted">
