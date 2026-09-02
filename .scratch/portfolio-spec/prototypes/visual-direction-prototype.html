@@ -372,7 +372,6 @@ description: Screenshot a route before and after a change and diff the two.
           <div><h3>Mentions: @ a colleague, # a record</h3><p class="muted" style="margin-top:6px">Type @ to bring a colleague into a comment or task, # to link the record it is about. Search ranks the match as you type. One composer serves comments and tasks.</p></div>
           <div class="meta">5k lines<br><span class="accent">In final review</span></div>
         </div>
-        <div class="entry" id="work3"></div>
         <div class="entry">
           <div><h3>This site</h3><p class="muted" style="margin-top:6px">Planned and built with the same method, in public. Every decision is in the Build Log.</p></div>
           <div class="meta">Vite · React · Framer Motion<br><span class="accent">Public repo</span></div>
@@ -481,7 +480,6 @@ description: Screenshot a route before and after a change and diff the two.
   <select id="now" title="Now strip (variant B)"></select>
   <select id="s8" title="Solution 8 line (variant B)"></select>
   <select id="labels" title="Row labels (variant B)"></select>
-  <select id="work3sel" title="Third Selected Work entry (variant B)"></select>
 </div>
 
 <script>
@@ -596,29 +594,9 @@ description: Screenshot a route before and after a change and diff the two.
   copySel.onchange = applyCopy;
   nowSel.onchange = applyCopy;
 
-  // Third Selected Work entry candidates for variant B. ?work3=<key>
-  const work3s = {
-    'bell': { name: 'work3: download bell', html: '<div><h3>Downloads that finish while you move on</h3><p class="muted" style="margin-top:6px">Large exports run in the background. A bell shows progress, stays with you across pages, and recovers downloads the browser lost.</p></div><div class="meta">1k lines<br><span class="accent">On main</span></div>' },
-    'dashboard': { name: 'work3: admin dashboard', html: '<div><h3>An admin dashboard that remembers your filters</h3><p class="muted" style="margin-top:6px">Admins see every organisation on one dashboard, filter it, and find the same filter on their next visit.</p></div><div class="meta">1.5k lines<br><span class="accent">On main</span></div>' },
-    'none': { name: 'work3: none (two Inact entries)', html: '' },
-  };
-  const work3Sel = document.getElementById('work3sel');
-  for (const k in work3s) work3Sel.add(new Option(work3s[k].name, k));
-  work3Sel.value = work3s[params.get('work3')] ? params.get('work3') : 'bell';
-  function applyWork3() {
-    const el = document.querySelector('#B #work3');
-    el.innerHTML = work3s[work3Sel.value].html;
-    el.style.display = work3Sel.value === 'none' ? 'none' : '';
-    const p = new URLSearchParams(location.search);
-    p.set('work3', work3Sel.value);
-    history.replaceState(null, '', '?' + p.toString());
-  }
-  work3Sel.onchange = applyWork3;
-
   apply();
   applyPrefs();
   applyCopy();
-  applyWork3();
 </script>
 </body>
 </html>

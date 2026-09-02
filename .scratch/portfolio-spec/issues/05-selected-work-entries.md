@@ -1,7 +1,7 @@
 # Selected Work entries
 
 Type: grilling
-Status: open
+Status: closed
 Blocked by: 08
 
 ## Question
