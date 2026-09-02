@@ -1,8 +1,8 @@
 function Nav() {
   return (
-    <nav aria-label="Main" className="flex items-center justify-between text-sm">
+    <nav aria-label="Main" className="flex flex-wrap items-center justify-between gap-x-7 gap-y-2 text-sm">
       <span>Emil Vladinov</span>
-      <div className="flex gap-7">
+      <div className="flex flex-wrap gap-x-7 gap-y-2">
         <a href="/#work">Work</a>
         <a href="/#method">Method</a>
         <a href="/build-log/">Build Log</a>
