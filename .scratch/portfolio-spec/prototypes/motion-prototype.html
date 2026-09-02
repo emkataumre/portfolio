@@ -64,7 +64,7 @@
   footer { margin-top: 120px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: .875rem; color: var(--muted); }
   @media (max-width: 760px) {
     .hero { grid-template-columns: 1fr; }
-    .avatar-wrap { justify-self: start; max-width: 260px; order: -1; }
+    .avatar-wrap { justify-self: start; max-width: 220px; order: -1; }
     section { grid-template-columns: 1fr; gap: 16px; }
     h2 { position: static; }
     .principles { grid-template-columns: 1fr; }
@@ -73,10 +73,12 @@
   }
 
   /* ---------- Cursor Avatar ---------- */
-  .avatar-wrap { width: 100%; max-width: 380px; justify-self: end; }
+  .avatar-wrap { width: 100%; max-width: 280px; justify-self: end; }
   .avatar { position: relative; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: #e9e9e6; will-change: transform; }
   .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; visibility: hidden; }
   .avatar img.on { visibility: visible; }
+  .avatar canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: none; }
+  html[data-pixel]:not([data-pixel="0"]) .avatar canvas { display: block; }
   .avatar .tag { position: absolute; left: 10px; bottom: 8px; font: 500 11px/1 var(--font-mono); color: #fff; background: rgb(0 0 0 / .45); padding: 4px 6px; border-radius: 6px; display: none; }
   html[data-debug="1"] .avatar .tag { display: block; }
 
@@ -138,6 +140,7 @@
         <img data-pose="UpRight" src="../assets/poses/pose-up-right.webp" width="370" height="370" alt="" />
         <img data-pose="DownLeft" src="../assets/poses/pose-down-left.webp" width="370" height="370" alt="" />
         <img data-pose="DownRight" src="../assets/poses/pose-down-right.webp" width="370" height="370" alt="" />
+        <canvas id="pixelCanvas"></canvas>
         <span class="tag" id="poseTag">Pose: Center</span>
       </div>
     </div>
@@ -213,6 +216,9 @@
     <option value="lastTap">touch: last tap</option>
     <option value="none">touch: none</option>
   </select>
+  <select id="pixel" title="Pixel size in CSS px">
+    <option value="0">pixel: off</option><option value="3">pixel: 3</option><option value="4">pixel: 4</option><option value="6">pixel: 6</option><option value="8">pixel: 8</option>
+  </select>
   <label><input type="checkbox" id="reduced" /> reduced motion</label>
   <label><input type="checkbox" id="debug" /> debug</label>
 </div>
@@ -228,7 +234,8 @@
   const $$ = s => [...document.querySelectorAll(s)];
 
   // ---------- prefs ----------
-  const touchSel = $('#touch'), reducedBox = $('#reduced'), debugBox = $('#debug');
+  const touchSel = $('#touch'), reducedBox = $('#reduced'), debugBox = $('#debug'), pixelSel = $('#pixel');
+  pixelSel.value = params.get('pixel') || '4';
   touchSel.value = params.get('touch') || 'auto';
   reducedBox.checked = params.get('reduced') === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;
   debugBox.checked = params.get('debug') === '1';
@@ -236,7 +243,8 @@
   function savePrefs() {
     const p = new URLSearchParams(location.search);
     p.set('variant', current); p.set('touch', touchSel.value);
-    p.set('reduced', reduced() ? '1' : '0'); p.set('debug', debugBox.checked ? '1' : '0');
+    p.set('reduced', reduced() ? '1' : '0'); p.set('debug', debugBox.checked ? '1' : '0'); p.set('pixel', pixelSel.value);
+    html.dataset.pixel = pixelSel.value;
     history.replaceState(null, '', '?' + p.toString());
     html.dataset.reduced = reduced() ? '1' : '0';
     html.dataset.debug = debugBox.checked ? '1' : '0';
@@ -247,7 +255,8 @@
   // Numbers from the research ticket. Tune here, record the winners on the ticket.
   // =====================================================================
   const AV = {
-    trackingRadius: 264, trackingStrength: 2,
+    trackPage: true, trackingStrength: 1.6, // page mode: the vector is dx / (viewport width / 2), so the far edge is a full turn
+    trackingRadius: 264, // used by the tap handlers only
     stiffness: 120, damping: 20,
     directionThreshold: 0.8, hysteresis: 0.05, deadZone: 0.25,
     wobble: { x: 2, y: 2, rotate: 1, scale: 0.01 },
@@ -289,8 +298,18 @@
         if (pose === 'Center' || bs - score(pose) > AV.hysteresis) next = best;
       }
     }
-    if (next !== pose) { poseImgs[pose].classList.remove('on'); poseImgs[next].classList.add('on'); pose = next; $('#poseTag').textContent = 'Pose: ' + pose; }
+    if (next !== pose) { poseImgs[pose].classList.remove('on'); poseImgs[next].classList.add('on'); pose = next; $('#poseTag').textContent = 'Pose: ' + pose; drawPixel(); }
   }
+  // Pixel filter: draw the active Pose into a canvas with one cell per `pixel` CSS px, upscaled with image-rendering: pixelated.
+  const pixelCanvas = $('#pixelCanvas'), pctx = pixelCanvas.getContext('2d');
+  function drawPixel() {
+    const px = +pixelSel.value; if (!px) return;
+    const size = Math.max(8, Math.round(avatar.clientWidth / px));
+    pixelCanvas.width = size; pixelCanvas.height = size;
+    pctx.imageSmoothingEnabled = true;
+    pctx.drawImage(poseImgs[pose], 0, 0, size, size);
+  }
+  window.addEventListener('resize', drawPixel);
   function wobble() {
     if (reduced()) return;
     const { x, y } = spring, m = Math.min(1, Math.hypot(x, y));
@@ -307,8 +326,7 @@
     if (mode !== 'pointer') return;
     const r = avatar.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-    if (Math.hypot(dx, dy) > AV.trackingRadius) setTarget(0, 0);
-    else setTarget(dx / AV.trackingRadius * AV.trackingStrength, dy / AV.trackingRadius * AV.trackingStrength);
+    setTarget(dx / (innerWidth / 2) * AV.trackingStrength, dy / (innerHeight / 2) * AV.trackingStrength);
   }
   function onLeave() { if (mode === 'pointer') setTarget(0, 0); }
   function onTap(e) {
@@ -348,7 +366,7 @@
   avatar.addEventListener('pointerdown', onTap);
 
   // decode all nine before tracking starts
-  Promise.allSettled(Object.values(poseImgs).map(i => i.decode())).then(() => { lastT = performance.now(); raf = requestAnimationFrame(tick); applyInput(); });
+  Promise.allSettled(Object.values(poseImgs).map(i => i.decode())).then(() => { lastT = performance.now(); raf = requestAnimationFrame(tick); applyInput(); drawPixel(); });
 
   // =====================================================================
   // Choreography. Each variant is a function that sets up reveals and scroll
@@ -446,6 +464,7 @@
   touchSel.onchange = () => { savePrefs(); applyInput(); };
   reducedBox.onchange = () => { savePrefs(); applyInput(); run(); };
   debugBox.onchange = () => { savePrefs(); };
+  pixelSel.onchange = () => { savePrefs(); drawPixel(); };
 
   run();
 </script>
