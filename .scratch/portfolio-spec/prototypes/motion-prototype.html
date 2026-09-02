@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE: motion choreography (ticket 09)</title>
+<!--
+  PROTOTYPE. Throwaway. Ticket 09, motion choreography.
+  Three motion variants over the decided visual direction (B, Editorial, light, green),
+  switchable with ?variant=A|B|C and the bottom bar. Arrow keys cycle variants.
+  Cursor Avatar uses the nine real Poses from ../assets/poses/, stacked, visibility toggled.
+  Bar toggles: reduced motion (simulated), touch mode (drift / last tap / none), debug overlay.
+  Open the file directly in a browser. No build step. Motion (vanilla) from a CDN.
+
+  Variants:
+    A  Quiet      fades only, no stagger, no scroll-linked moments.
+    B  Editorial  fade + rise reveals with stagger. Two scroll moments: hero avatar recedes, rules draw in.
+    C  Lively     headline word stagger, avatar spring-in, rail marker fills, reading progress bar.
+-->
+<link rel="preload" as="image" href="../assets/poses/pose-center.webp" />
+<style>
+  :root {
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --bg: #fafaf9; --surface: #ffffff; --text: #18181b; --muted: #6b6b70; --line: #e6e6e3;
+    --accent: #16a34a;
+    --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; padding-bottom: 96px; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--accent); }
+  h1, h2, h3, p { margin: 0; }
+  .muted { color: var(--muted); }
+  .mono { font-family: var(--font-mono); font-size: .8125rem; }
+  .accent { color: var(--accent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 48px 32px 40px; }
+  nav { display: flex; justify-content: space-between; align-items: center; font-size: .875rem; }
+  nav .links { display: flex; gap: 22px; white-space: nowrap; }
+  .hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 56px; align-items: center; margin-top: 88px; }
+  .hero h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 700; letter-spacing: -.035em; line-height: 1.02; }
+  .hero h1 .w { display: inline-block; }
+  .hero .lede { font-size: 1.25rem; color: var(--muted); margin-top: 22px; max-width: 520px; line-height: 1.45; }
+  .now { margin-top: 72px; border-top: 1px solid var(--line); font-size: .95rem; line-height: 1.5; }
+  .now .row { display: grid; grid-template-columns: 8px 92px 1fr; gap: 14px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  section { display: grid; grid-template-columns: 200px 1fr; gap: 40px; margin-top: 96px; }
+  h2 { font-size: 1rem; font-weight: 600; letter-spacing: -.01em; position: sticky; top: 24px; }
+  h2 small { display: block; color: var(--muted); font-weight: 400; margin-top: 4px; }
+  .testimony { margin-bottom: 28px; }
+  .video { position: relative; margin-top: 32px; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in oklab, var(--muted) 8%, var(--surface)); display: flex; align-items: center; justify-content: center; }
+  .video .play { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); position: relative; }
+  .video .play::after { content: ""; position: absolute; left: 22px; top: 18px; border-left: 16px solid #fff; border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+  .video .cap { position: absolute; left: 14px; bottom: 12px; font: 500 12px/1 var(--font-mono); color: var(--muted); }
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 32px; }
+  .principles h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+  .entry { padding: 22px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; gap: 24px; position: relative; }
+  .entry:last-child { border-bottom: 1px solid var(--line); }
+  .entry h3 { font-size: 1.125rem; font-weight: 600; letter-spacing: -.01em; }
+  .entry .meta { text-align: right; font-size: .8125rem; color: var(--muted); white-space: nowrap; }
+  .log .row { display: grid; grid-template-columns: 110px 1fr; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+  footer { margin-top: 120px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: .875rem; color: var(--muted); }
+  @media (max-width: 760px) {
+    .hero { grid-template-columns: 1fr; }
+    .avatar-wrap { justify-self: start; max-width: 260px; order: -1; }
+    section { grid-template-columns: 1fr; gap: 16px; }
+    h2 { position: static; }
+    .principles { grid-template-columns: 1fr; }
+    .entry { grid-template-columns: 1fr; }
+    .entry .meta { text-align: left; white-space: normal; }
+  }
+
+  /* ---------- Cursor Avatar ---------- */
+  .avatar-wrap { width: 100%; max-width: 380px; justify-self: end; }
+  .avatar { position: relative; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: #e9e9e6; will-change: transform; }
+  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; visibility: hidden; }
+  .avatar img.on { visibility: visible; }
+  .avatar .tag { position: absolute; left: 10px; bottom: 8px; font: 500 11px/1 var(--font-mono); color: #fff; background: rgb(0 0 0 / .45); padding: 4px 6px; border-radius: 6px; display: none; }
+  html[data-debug="1"] .avatar .tag { display: block; }
+
+  /* ---------- Variant B: rules that draw in ---------- */
+  html[data-variant="B"] .entry { border-top-color: transparent; }
+  html[data-variant="B"] .entry:last-child { border-bottom-color: transparent; }
+  html[data-variant="B"] .entry::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; background: var(--line); transform-origin: left; transform: scaleX(0); }
+  html[data-variant="B"] .entry:last-child::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--line); transform-origin: left; transform: scaleX(0); }
+
+  /* ---------- Variant C: rail marker and progress bar ---------- */
+  #progress { position: fixed; top: 0; left: 0; height: 2px; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); display: none; z-index: 50; }
+  html[data-variant="C"] #progress { display: block; }
+  .rail { display: none; position: absolute; left: -16px; top: 2px; width: 2px; height: 1.2em; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .rail i { display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: top; transform: scaleY(0); }
+  html[data-variant="C"] .rail { display: block; }
+  @media (max-width: 760px) { .rail { display: none !important; } }
+
+  /* reveal targets start hidden only when a variant runs them */
+  html[data-reveal="1"] [data-reveal] { opacity: 0; }
+  html[data-reduced="1"] .avatar { transform: none !important; }
+
+  /* ---------- debug ---------- */
+  #debug { position: fixed; right: 14px; top: 14px; font: 12px/1.4 var(--font-mono); background: #111; color: #9f9; padding: 8px 10px; border-radius: 8px; display: none; z-index: 60; white-space: pre; }
+  html[data-debug="1"] #debug { display: block; }
+
+  /* ---------- prototype bar (not part of the design) ---------- */
+  #bar { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; background: #111; color: #fff; border: 1px solid #333; border-radius: 999px; padding: 8px 12px; font: 13px/1 var(--font-mono); box-shadow: 0 10px 30px rgb(0 0 0 / .35); z-index: 99; white-space: nowrap; }
+  #bar button, #bar select { background: #222; color: #fff; border: 1px solid #444; border-radius: 999px; padding: 6px 10px; font: inherit; cursor: pointer; }
+  #bar button:hover { background: #333; }
+  #bar .label { min-width: 110px; text-align: center; }
+  #bar .sep { width: 1px; height: 18px; background: #444; }
+  #bar label { display: inline-flex; align-items: center; gap: 5px; }
+  @media (max-width: 640px) { #bar { flex-wrap: wrap; justify-content: center; max-width: 94vw; white-space: normal; border-radius: 18px; } #bar .label { min-width: 0; } }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="debug"></div>
+
+<div class="wrap">
+  <nav data-reveal="nav">
+    <strong>Emil Vladinov</strong>
+    <div class="links"><a href="#">Work</a><a href="#">Method</a><a href="#">Build Log</a><a href="#" class="accent">Contact</a></div>
+  </nav>
+
+  <div class="hero">
+    <div>
+      <h1 data-reveal="h1">Real software, built with AI agents.</h1>
+      <p class="lede" data-reveal="lede">The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. I own the result. Software engineer in Copenhagen.</p>
+    </div>
+    <div class="avatar-wrap" data-reveal="avatar">
+      <div class="avatar" id="avatar" aria-label="Emil Vladinov">
+        <img class="on" data-pose="Center" src="../assets/poses/pose-center.webp" width="370" height="370" alt="Emil Vladinov" fetchpriority="high" />
+        <img data-pose="Left" src="../assets/poses/pose-left.webp" width="370" height="370" alt="" />
+        <img data-pose="Right" src="../assets/poses/pose-right.webp" width="370" height="370" alt="" />
+        <img data-pose="Up" src="../assets/poses/pose-up.webp" width="370" height="370" alt="" />
+        <img data-pose="Down" src="../assets/poses/pose-down.webp" width="370" height="370" alt="" />
+        <img data-pose="UpLeft" src="../assets/poses/pose-up-left.webp" width="370" height="370" alt="" />
+        <img data-pose="UpRight" src="../assets/poses/pose-up-right.webp" width="370" height="370" alt="" />
+        <img data-pose="DownLeft" src="../assets/poses/pose-down-left.webp" width="370" height="370" alt="" />
+        <img data-pose="DownRight" src="../assets/poses/pose-down-right.webp" width="370" height="370" alt="" />
+        <span class="tag" id="poseTag">Pose: Center</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="now" data-reveal="now">
+    <div class="row"><span class="dot"></span><strong class="label">Now</strong><span class="text">Software engineer at Inact. I use agentic coding to land large features fast in a large legacy codebase.</span></div>
+    <div class="row"><span class="dot"></span><strong class="label">In parallel</strong><span class="text">At Solution 8 I work in a team that runs on agentic workflows: shared skills, shared conventions, agent-written code reviewed by peers. We build internal tools and open source material on agentic programming.</span></div>
+  </div>
+
+  <section>
+    <h2 style="position:sticky"><span class="rail"><i></i></span>Working Method <small>How agent code gets to main</small></h2>
+    <div>
+      <p class="muted testimony" data-reveal="s">At Inact, this method has put about 21k lines of agent-written code through senior review.</p>
+      <div class="principles">
+        <div data-reveal="s"><h3>Plan first</h3><p class="muted">Every feature starts as a map of decisions. No code until the questions have answers.</p></div>
+        <div data-reveal="s"><h3>Argue the plan</h3><p class="muted">The agent interrogates the plan before it builds. Weak ideas die on paper.</p></div>
+        <div data-reveal="s"><h3>Small steps with tests</h3><p class="muted">One change at a time. A failing test first, where the codebase allows it.</p></div>
+        <div data-reveal="s"><h3>Review in passes</h3><p class="muted">Security, dead code, duplication, error handling. Each pass runs in a fresh context.</p></div>
+        <div data-reveal="s"><h3>Verify at runtime</h3><p class="muted">The agent drives the app and queries the database before it says "done".</p></div>
+      </div>
+      <div class="video" data-reveal="s" aria-label="Video placeholder: one feature, from map to production">
+        <span class="play"></span>
+        <span class="cap">One feature, from map to production. 40 s, with music.</span>
+      </div>
+      <p class="muted" style="margin-top:8px" data-reveal="s">The team version of this method is public: the <a class="accent" href="https://github.com/solution8-com/agentic-playbook">Solution 8 agentic playbook</a>.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="rail"><i></i></span>Selected Work <small>Inact, 2026. A ten-year-old Go and React monorepo, 415k lines.</small></h2>
+    <div class="work">
+      <div class="entry" data-reveal="s">
+        <div><h3>Tasks: turn an insight into work someone owns</h3><p class="muted" style="margin-top:6px">Any finding in the product becomes a task with an owner, a due date, and a state. Tasks show up on seven grid views and one My Tasks page, and the right people get mail when something changes. Built alone, end to end.</p></div>
+        <div class="meta">21k lines · 154 files<br><span class="accent">In final review, September release</span></div>
+      </div>
+      <div class="entry" data-reveal="s">
+        <div><h3>Mentions: @ a colleague, # a record</h3><p class="muted" style="margin-top:6px">Type @ to bring a colleague into a comment or task, # to link the record it is about. Search ranks the match as you type. One composer serves comments and tasks.</p></div>
+        <div class="meta">5k lines<br><span class="accent">In final review</span></div>
+      </div>
+      <div class="entry" data-reveal="s">
+        <div><h3>This site</h3><p class="muted" style="margin-top:6px">Planned and built with the same method, in public. Every decision is in the Build Log.</p></div>
+        <div class="meta">Vite · React · Framer Motion<br><span class="accent">Public repo</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="rail"><i></i></span>Build Log <small>The one thing you can verify</small></h2>
+    <div class="log">
+      <div class="row" data-reveal="s"><span class="mono muted">2026-09-02</span><span>Charted the map. Ten tickets. Three research results merged.</span></div>
+      <div class="row" data-reveal="s"><span class="mono muted">2026-09-02</span><span>Decided the stack: Vite, React, Tailwind, Framer Motion, Cloudflare Pages.</span></div>
+      <div class="row" data-reveal="s"><span class="mono muted">2026-09-02</span><span>Wrote the domain glossary. Six terms.</span></div>
+      <p style="margin-top:18px" data-reveal="s"><a class="accent" href="#">Read the full Build Log →</a></p>
+    </div>
+  </section>
+
+  <footer data-reveal="s">
+    <span>Emil Vladinov · Copenhagen</span>
+    <span><a href="#">hello@example.com</a> · <a href="#">GitHub</a> · <a href="#">LinkedIn</a></span>
+  </footer>
+</div>
+
+<div id="bar">
+  <button id="prev" title="Previous (←)">←</button>
+  <span class="label" id="label"></span>
+  <button id="next" title="Next (→)">→</button>
+  <button id="replay" title="Replay entrance (R)">replay</button>
+  <span class="sep"></span>
+  <select id="touch" title="Touch mode (forces coarse-pointer behaviour)">
+    <option value="auto">touch: auto</option>
+    <option value="drift">touch: drift</option>
+    <option value="lastTap">touch: last tap</option>
+    <option value="none">touch: none</option>
+  </select>
+  <label><input type="checkbox" id="reduced" /> reduced motion</label>
+  <label><input type="checkbox" id="debug" /> debug</label>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/motion@12/dist/motion.js"></script>
+<script>
+  const { animate, inView, scroll, stagger } = Motion;
+  const html = document.documentElement;
+  const params = new URLSearchParams(location.search);
+  const variants = { A: 'Quiet', B: 'Editorial', C: 'Lively' };
+  let current = variants[params.get('variant')] ? params.get('variant') : 'B';
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  // ---------- prefs ----------
+  const touchSel = $('#touch'), reducedBox = $('#reduced'), debugBox = $('#debug');
+  touchSel.value = params.get('touch') || 'auto';
+  reducedBox.checked = params.get('reduced') === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  debugBox.checked = params.get('debug') === '1';
+  const reduced = () => reducedBox.checked;
+  function savePrefs() {
+    const p = new URLSearchParams(location.search);
+    p.set('variant', current); p.set('touch', touchSel.value);
+    p.set('reduced', reduced() ? '1' : '0'); p.set('debug', debugBox.checked ? '1' : '0');
+    history.replaceState(null, '', '?' + p.toString());
+    html.dataset.reduced = reduced() ? '1' : '0';
+    html.dataset.debug = debugBox.checked ? '1' : '0';
+  }
+
+  // =====================================================================
+  // Cursor Avatar. Spring-smoothed pointer vector, dot-score Pose selection.
+  // Numbers from the research ticket. Tune here, record the winners on the ticket.
+  // =====================================================================
+  const AV = {
+    trackingRadius: 264, trackingStrength: 2,
+    stiffness: 120, damping: 20,
+    directionThreshold: 0.8, hysteresis: 0.05, deadZone: 0.25,
+    wobble: { x: 2, y: 2, rotate: 1, scale: 0.01 },
+    drift: { min: 2500, max: 4000, mag: 0.9, tapPause: 4000 },
+  };
+  const DIR = { Left: [-1, 0], Right: [1, 0], Up: [0, -1], Down: [0, 1],
+    UpLeft: [-0.7071, -0.7071], UpRight: [0.7071, -0.7071], DownLeft: [-0.7071, 0.7071], DownRight: [0.7071, 0.7071] };
+  const NEIGHBOURS = { Center: Object.keys(DIR), Left: ['UpLeft', 'DownLeft'], Right: ['UpRight', 'DownRight'],
+    Up: ['UpLeft', 'UpRight'], Down: ['DownLeft', 'DownRight'], UpLeft: ['Up', 'Left'], UpRight: ['Up', 'Right'],
+    DownLeft: ['Down', 'Left'], DownRight: ['Down', 'Right'] };
+  const avatar = $('#avatar');
+  const poseImgs = Object.fromEntries($$('#avatar img').map(i => [i.dataset.pose, i]));
+  const clamp = v => Math.max(-1, Math.min(1, v));
+
+  // tiny spring integrator, same parameters as useSpring({ stiffness, damping })
+  const spring = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0 };
+  let pose = 'Center', lastT = performance.now(), raf = 0;
+  function tick(t) {
+    const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
+    for (const k of ['x', 'y']) {
+      const v = 'v' + k, tg = 't' + k;
+      const a = -AV.stiffness * (spring[k] - spring[tg]) - AV.damping * spring[v];
+      spring[v] += a * dt; spring[k] += spring[v] * dt;
+    }
+    selectPose(); wobble(); debug();
+    raf = requestAnimationFrame(tick);
+  }
+  function setTarget(x, y) { spring.tx = clamp(x); spring.ty = clamp(y); }
+  function selectPose() {
+    const { x, y } = spring, m = Math.hypot(x, y);
+    let next = pose;
+    if (m < AV.deadZone - AV.hysteresis) next = 'Center';
+    else if (pose === 'Center' && m < AV.deadZone + AV.hysteresis) next = pose;
+    else {
+      const score = p => (x * DIR[p][0] + y * DIR[p][1]) / m;
+      let best = null, bs = -2;
+      for (const p in DIR) { const s = score(p); if (s > bs) { bs = s; best = p; } }
+      if (bs >= AV.directionThreshold) {
+        if (pose === 'Center' || bs - score(pose) > AV.hysteresis) next = best;
+      }
+    }
+    if (next !== pose) { poseImgs[pose].classList.remove('on'); poseImgs[next].classList.add('on'); pose = next; $('#poseTag').textContent = 'Pose: ' + pose; }
+  }
+  function wobble() {
+    if (reduced()) return;
+    const { x, y } = spring, m = Math.min(1, Math.hypot(x, y));
+    avatar.style.transform = `translate(${x * AV.wobble.x}px, ${y * AV.wobble.y}px) rotate(${x * AV.wobble.rotate}deg) scale(${1 + AV.wobble.scale * m})`;
+  }
+  function debug() {
+    if (!debugBox.checked) return;
+    $('#debug').textContent = `pose   ${pose}\nsmooth ${spring.x.toFixed(2)} ${spring.y.toFixed(2)}\ntarget ${spring.tx.toFixed(2)} ${spring.ty.toFixed(2)}\nmode   ${mode}\nvariant ${current}`;
+  }
+
+  // input modes: pointer (fine) / drift / lastTap / none
+  let mode = 'pointer', driftTimer = 0, driftCount = 0, tapUntil = 0;
+  function onMove(e) {
+    if (mode !== 'pointer') return;
+    const r = avatar.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    if (Math.hypot(dx, dy) > AV.trackingRadius) setTarget(0, 0);
+    else setTarget(dx / AV.trackingRadius * AV.trackingStrength, dy / AV.trackingRadius * AV.trackingStrength);
+  }
+  function onLeave() { if (mode === 'pointer') setTarget(0, 0); }
+  function onTap(e) {
+    const r = avatar.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    if (mode === 'lastTap') {
+      setTarget(dx / AV.trackingRadius * AV.trackingStrength, dy / AV.trackingRadius * AV.trackingStrength);
+    } else if (mode === 'drift') {
+      setTarget(dx / (r.width / 2), dy / (r.height / 2));
+      tapUntil = performance.now() + AV.drift.tapPause;
+    }
+  }
+  function driftStep() {
+    if (mode !== 'drift') return;
+    if (performance.now() < tapUntil || document.visibilityState === 'hidden' || !heroVisible) { scheduleDrift(800); return; }
+    driftCount++;
+    if (driftCount % 3 === 0 || pose === 'Center' && Math.random() < 0.15) setTarget(0, 0);
+    else { const n = NEIGHBOURS[pose]; const p = n[Math.floor(Math.random() * n.length)]; setTarget(DIR[p][0] * AV.drift.mag, DIR[p][1] * AV.drift.mag); }
+    scheduleDrift();
+  }
+  function scheduleDrift(ms) { clearTimeout(driftTimer); driftTimer = setTimeout(driftStep, ms ?? AV.drift.min + Math.random() * (AV.drift.max - AV.drift.min)); }
+  let heroVisible = true;
+  new IntersectionObserver(([en]) => { heroVisible = en.isIntersecting; }, { threshold: 0.2 }).observe(avatar);
+
+  function applyInput() {
+    const coarse = matchMedia('(pointer: coarse)').matches;
+    const sel = touchSel.value;
+    mode = reduced() ? 'none' : sel === 'auto' ? (coarse ? 'drift' : 'pointer') : sel;
+    clearTimeout(driftTimer);
+    setTarget(0, 0);
+    if (mode === 'drift') scheduleDrift(1200);
+    if (mode === 'none') { spring.x = spring.y = spring.vx = spring.vy = 0; avatar.style.transform = ''; selectPose(); }
+  }
+  window.addEventListener('pointermove', onMove, { passive: true });
+  document.documentElement.addEventListener('pointerleave', onLeave);
+  window.addEventListener('blur', onLeave);
+  avatar.addEventListener('pointerdown', onTap);
+
+  // decode all nine before tracking starts
+  Promise.allSettled(Object.values(poseImgs).map(i => i.decode())).then(() => { lastT = performance.now(); raf = requestAnimationFrame(tick); applyInput(); });
+
+  // =====================================================================
+  // Choreography. Each variant is a function that sets up reveals and scroll
+  // moments, and returns a cleanup. Durations in seconds, Motion easing names.
+  // =====================================================================
+  const EASE_OUT = [0.22, 1, 0.36, 1]; // "easeOut" close to Motion's default easeOut
+  let cleanup = () => {};
+  function stopAll() { cleanup(); cleanup = () => {}; $$('[data-reveal], .hero h1, .avatar-wrap, .entry, .rail i, #progress').forEach(el => { el.style.opacity = ''; el.style.transform = ''; el.style.filter = ''; }); }
+
+  function fade(els, { dur = 0.4, delay = 0, step = 0, y = 0 } = {}) {
+    if (reduced()) { els.forEach(el => { el.style.opacity = 1; el.style.transform = ''; }); return; }
+    const kf = y ? { opacity: [0, 1], transform: [`translateY(${y}px)`, 'translateY(0px)'] } : { opacity: [0, 1] };
+    els.forEach((el, i) => animate(el, kf, { duration: dur, delay: delay + i * step, ease: EASE_OUT }));
+  }
+  function revealBelow(fn) {
+    // every below-fold [data-reveal="s"] element reveals once when 15% in view
+    const stops = $$('[data-reveal="s"]').map(el => inView(el, () => { fn(el); }, { amount: 0.15, margin: '0px 0px -40px 0px' }));
+    return () => stops.forEach(s => s());
+  }
+
+  // A: Quiet. Fades only. One fade for the whole hero block, no stagger. No scroll moments.
+  function choreoA() {
+    html.dataset.reveal = '1';
+    fade($$('[data-reveal="nav"], [data-reveal="h1"], [data-reveal="lede"], [data-reveal="avatar"], [data-reveal="now"]'), { dur: 0.5 });
+    return revealBelow(el => fade([el], { dur: 0.4 }));
+  }
+
+  // B: Editorial. Fade + 12 px rise, staggered 80 ms through the hero. Below the fold, each block rises once.
+  // Scroll moments: (1) the hero avatar recedes as the hero scrolls out; (2) Selected Work rules draw in.
+  function choreoB() {
+    html.dataset.reveal = '1';
+    fade([$('[data-reveal="nav"]')], { dur: 0.5 });
+    fade([$('[data-reveal="h1"]'), $('[data-reveal="lede"]'), $('[data-reveal="avatar"]'), $('[data-reveal="now"]')], { dur: 0.6, delay: 0.1, step: 0.08, y: 12 });
+    const stopReveal = revealBelow(el => fade([el], { dur: 0.5, y: 12 }));
+    const stops = [stopReveal];
+    if (!reduced()) {
+      const wrap = $('.avatar-wrap');
+      stops.push(scroll(p => { wrap.style.transform = `translateY(${p * 40}px) scale(${1 - p * 0.06})`; wrap.style.opacity = 1 - p * 0.5; }, { target: $('.hero'), offset: ['end end', 'end start'] }));
+      $$('.entry').forEach((en, i) => stops.push(inView(en, () => drawRule(en, i * 0.08), { amount: 0.4 })));
+    } else { $$('.entry').forEach(en => en.classList.add('drawn')); }
+    return () => stops.forEach(s => s());
+  }
+  // the rule is a pseudo-element, so the draw runs as a CSS transition toggled by a class
+  const drawStyle = document.createElement('style');
+  drawStyle.textContent = `html[data-variant="B"] .entry.drawn::before, html[data-variant="B"] .entry.drawn::after { transform: scaleX(1); transition: transform .7s cubic-bezier(.22,1,.36,1); }`;
+  document.head.appendChild(drawStyle);
+  function drawRule(en, delay) { setTimeout(() => en.classList.add('drawn'), delay * 1000); }
+
+  // C: Lively. Headline words stagger up 40 ms apart with a slight blur. Avatar springs in (scale .92 -> 1).
+  // Scroll moments: (1) rail marker fills as each section is read; (2) reading progress bar in the top edge;
+  // (3) the hero avatar recedes, as in B.
+  function choreoC() {
+    html.dataset.reveal = '1';
+    const h1 = $('[data-reveal="h1"]');
+    if (!h1.dataset.split) { h1.innerHTML = h1.textContent.split(' ').map(w => `<span class="w">${w}</span>`).join(' '); h1.dataset.split = '1'; }
+    const words = $$('.hero h1 .w');
+    h1.style.opacity = 1;
+    if (reduced()) { words.forEach(w => { w.style.opacity = 1; }); fade($$('[data-reveal="nav"], [data-reveal="lede"], [data-reveal="avatar"], [data-reveal="now"]')); }
+    else {
+      fade([$('[data-reveal="nav"]')], { dur: 0.5 });
+      words.forEach((w, i) => animate(w, { opacity: [0, 1], transform: ['translateY(18px)', 'translateY(0px)'], filter: ['blur(4px)', 'blur(0px)'] }, { duration: 0.55, delay: 0.1 + i * 0.04, ease: EASE_OUT }));
+      fade([$('[data-reveal="lede"]'), $('[data-reveal="now"]')], { dur: 0.6, delay: 0.45, step: 0.12, y: 12 });
+      const av = $('[data-reveal="avatar"]');
+      animate(av, { opacity: [0, 1], transform: ['scale(0.92)', 'scale(1)'] }, { type: 'spring', stiffness: 140, damping: 18, delay: 0.25 });
+    }
+    const stops = [revealBelow(el => fade([el], { dur: 0.5, y: 12 }))];
+    if (!reduced()) {
+      stops.push(scroll(p => { $('#progress').style.transform = `scaleX(${p})`; }));
+      $$('section').forEach(sec => { const bar = sec.querySelector('.rail i'); if (bar) stops.push(scroll(p => { bar.style.transform = `scaleY(${p})`; }, { target: sec, offset: ['start 60%', 'end 60%'] })); });
+      const wrap = $('.avatar-wrap');
+      stops.push(scroll(p => { if (p > 0) { wrap.style.transform = `translateY(${p * 40}px) scale(${1 - p * 0.06})`; wrap.style.opacity = 1 - p * 0.5; } }, { target: $('.hero'), offset: ['end end', 'end start'] }));
+    }
+    return () => stops.forEach(s => s());
+  }
+
+  const choreos = { A: choreoA, B: choreoB, C: choreoC };
+  function run() {
+    stopAll();
+    html.dataset.variant = current;
+    $$('.entry').forEach(e => e.classList.remove('drawn'));
+    $('#label').textContent = `${current} (${variants[current]})`;
+    savePrefs();
+    cleanup = choreos[current]();
+  }
+  function step(d) { const keys = Object.keys(variants); current = keys[(keys.indexOf(current) + d + keys.length) % keys.length]; window.scrollTo(0, 0); run(); }
+  $('#prev').onclick = () => step(-1);
+  $('#next').onclick = () => step(1);
+  $('#replay').onclick = () => { window.scrollTo(0, 0); run(); };
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input, textarea, select, [contenteditable]')) return;
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+    if (e.key === 'r' || e.key === 'R') { window.scrollTo(0, 0); run(); }
+  });
+  touchSel.onchange = () => { savePrefs(); applyInput(); };
+  reducedBox.onchange = () => { savePrefs(); applyInput(); run(); };
+  debugBox.onchange = () => { savePrefs(); };
+
+  run();
+</script>
+</body>
+</html>
