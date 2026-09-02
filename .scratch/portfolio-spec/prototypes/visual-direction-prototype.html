@@ -147,6 +147,26 @@
   #B section { display: grid; grid-template-columns: 200px 1fr; gap: 40px; margin-top: 96px; }
   #B h2 { font-size: 1rem; font-weight: 600; letter-spacing: -.01em; position: sticky; top: 24px; }
   #B h2 small { display: block; color: var(--muted); font-weight: 400; margin-top: 4px; }
+  #B .testimony { margin-bottom: 28px; }
+  #B .video {
+    position: relative; margin-top: 32px; aspect-ratio: 16 / 9;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: color-mix(in oklab, var(--muted) 8%, var(--surface));
+    display: flex; align-items: center; justify-content: center;
+  }
+  #B .video .play {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--accent);
+    position: relative;
+  }
+  #B .video .play::after {
+    content: ""; position: absolute; left: 22px; top: 18px;
+    border-left: 16px solid #fff; border-top: 10px solid transparent; border-bottom: 10px solid transparent;
+  }
+  #B .video .cap {
+    position: absolute; left: 14px; bottom: 12px;
+    font: 500 12px/1 var(--font-mono); color: var(--muted);
+  }
+  #B .tools { margin-top: 24px; font-size: .9375rem; }
   #B .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 32px; }
   #B .principles h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
   #B .tools { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px; }
@@ -324,21 +344,20 @@ description: Screenshot a route before and after a change and diff the two.
     <section>
       <h2>Working Method <small>How agent code gets to main</small></h2>
       <div>
+        <p class="muted testimony">At Inact, this method has put about 21k lines of agent-written code through senior review.</p>
         <div class="principles">
-          <div><h3>Plan before code</h3><p class="muted">Every feature starts as a map of decisions. No code until the questions are answered.</p></div>
-          <div><h3>Grill the plan</h3><p class="muted">The agent argues against the plan before it builds it. Weak ideas die on paper.</p></div>
-          <div><h3>Review in passes</h3><p class="muted">Security, dead code, duplication, error handling. Each pass is a fresh context.</p></div>
+          <div><h3>Plan first</h3><p class="muted">Every feature starts as a map of decisions. No code until the questions have answers.</p></div>
+          <div><h3>Argue the plan</h3><p class="muted">The agent interrogates the plan before it builds. Weak ideas die on paper.</p></div>
+          <div><h3>Small steps with tests</h3><p class="muted">One change at a time. A failing test first, where the codebase allows it.</p></div>
+          <div><h3>Review in passes</h3><p class="muted">Security, dead code, duplication, error handling. Each pass runs in a fresh context.</p></div>
           <div><h3>Verify at runtime</h3><p class="muted">The agent drives the app and queries the database before it says "done".</p></div>
         </div>
-        <div class="tools">
-          <span class="pill">Claude Code</span><span class="pill">Custom skills</span><span class="pill">MCP servers</span><span class="pill">Wayfinder</span><span class="pill">Grilling</span><span class="pill">Playwright</span>
+        <div class="video" aria-label="Video placeholder: one feature, from map to production">
+          <span class="play"></span>
+          <span class="cap">One feature, from map to production. 40 s, no sound.</span>
         </div>
-        <code class="block" style="margin-top:24px"># .claude/skills/visual-diff/SKILL.md   (redacted excerpt)
-1. Start the app on <span class="redacted" style="width:9ch"></span>.
-2. Screenshot <span class="redacted" style="width:14ch"></span> at 1280x800 and 390x844.
-3. Apply the change. Repeat step 2.
-4. Report every pixel region that moved.</code>
-        <p class="muted" style="margin-top:16px">Team practice at Solution 8 is written up in the <a class="accent" href="#">agentic playbook</a>.</p>
+        <p class="muted tools">Tools: Claude Code, custom skills, MCP servers. Skills like wayfinder and grilling come from Matt Pocock's public skill set, extended with my own.</p>
+        <p class="muted" style="margin-top:8px">The team version of this method is public: the <a class="accent" href="https://github.com/solution8-com/agentic-playbook">Solution 8 agentic playbook</a>.</p>
       </div>
     </section>
 
