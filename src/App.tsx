@@ -16,7 +16,7 @@ function App() {
       <Section
         id="work"
         label="Selected Work"
-        subline="Inact, 2026. A ten-year-old Go and React monorepo, 415k lines."
+        subline="Inact, 2026. A legacy Go and React monorepo, 415k lines."
       >
         <SelectedWork />
       </Section>

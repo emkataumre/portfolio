@@ -81,7 +81,7 @@ No tools line. No pills. Closing line with the one accent link:
 
 ### 3.5 Selected Work
 
-Label: **Selected Work**. Subline: **Inact, 2026. A ten-year-old Go and React monorepo, 415k lines.**
+Label: **Selected Work**. Subline: **Inact, 2026. A legacy Go and React monorepo, 415k lines.**
 
 Three ruled entries. Each: title, one outcome paragraph left, meta column right (muted, mono size, right aligned).
 
