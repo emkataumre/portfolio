@@ -1,12 +1,13 @@
+import Hero from './components/Hero'
+import NowStrip from './components/NowStrip'
 import Page from './components/Page'
 import Section from './components/Section'
 
 function App() {
   return (
     <Page>
-      <section className="mt-22">
-        <h1>Hero placeholder</h1>
-      </section>
+      <Hero />
+      <NowStrip />
       <Section id="method" label="Working Method" subline="Placeholder subline.">
         <p>Working Method placeholder.</p>
       </Section>
