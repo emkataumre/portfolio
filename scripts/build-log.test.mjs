@@ -2,10 +2,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import {
+  LOG_ARGS,
   buildDays,
   dayOf,
   parseAnnotations,
@@ -72,6 +73,14 @@ test('buildDays groups by day, merges notes, sorts newest first', () => {
   assert.deepEqual(days[2], { day: '2026-09-01', note: 'Note only day.', commits: [] });
 });
 
+test('buildDays sorts commits by instant, not by ISO string', () => {
+  const commits = [
+    { sha: 'early', date: '2026-09-03T09:00:00+02:00' },
+    { sha: 'late', date: '2026-09-03T08:00:00Z' },
+  ];
+  assert.deepEqual(buildDays(commits, new Map())[0].commits.map((c) => c.sha), ['late', 'early']);
+});
+
 test('git log filter drops activity commits', () => {
   const dir = mkdtempSync(join(tmpdir(), 'build-log-'));
   const run = (...args) =>
@@ -79,16 +88,22 @@ test('git log filter drops activity commits', () => {
   run('init', '-q');
   run('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'Real work');
   run('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'activity: 2026-09-03');
-  const raw = run('log', '--no-merges', '--invert-grep', '--grep=^activity: ', '--name-only',
-    '--pretty=format:%x1e%H%x1f%h%x1f%aI%x1f%s%x1f%b%x1d');
+  const raw = run(...LOG_ARGS);
   assert.deepEqual(parseGitLog(raw).map((c) => c.subject), ['Real work']);
 });
 
 test('main falls back and exits 0 when git is not usable', () => {
   const script = resolve(import.meta.dirname, 'build-log.mjs');
+  const target = join(mkdtempSync(join(tmpdir(), 'build-log-')), 'out', 'build-log.json');
   const out = execFileSync(process.execPath, [script], {
     encoding: 'utf8',
-    env: { ...process.env, PATH: '', CF_PAGES_COMMIT_SHA: 'cafe1234' },
+    env: { ...process.env, PATH: '', CF_PAGES_COMMIT_SHA: 'cafe1234', BUILD_LOG_OUT: target },
   });
   assert.match(out, /^build-log: source=fallback reason=.+\n$/);
+  const json = JSON.parse(readFileSync(target, 'utf8'));
+  assert.equal(json.source, 'fallback');
+  assert.equal(json.headSha, 'cafe1234');
+  assert.equal(json.days.length, 1);
+  assert.equal(json.days[0].day, '2026-09-02');
+  assert.deepEqual(json.days[0].commits, []);
 });

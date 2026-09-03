@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_URL = 'https://github.com/emkataumre/portfolio';
 const TIME_ZONE = 'Europe/Copenhagen';
-const LOG_ARGS = [
+export const LOG_ARGS = [
   'log',
   '--no-merges',
   '--invert-grep',
@@ -41,8 +41,8 @@ export function dayOf(isoDate) {
   return dayFormat.format(new Date(isoDate));
 }
 
-// Removes the trailer block (lines such as "Co-Authored-By: x") from the
-// end of a commit body. Keeps prose lines such as "Closes #20".
+// Removes the trailing block of "Word: value" lines from a commit body.
+// Lines without that prefix, such as "Closes #20", stay.
 export function stripTrailers(body) {
   const lines = body.replace(/\r\n/g, '\n').trimEnd().split('\n');
   while (lines.length > 0) {
@@ -109,7 +109,7 @@ export function buildDays(commits, notes) {
       commits: byDay
         .get(day)
         .slice()
-        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)),
+        .sort((a, b) => Date.parse(b.date) - Date.parse(a.date)),
     }));
 }
 
@@ -138,7 +138,24 @@ function readHistory() {
   return { commits, headSha: git(['rev-parse', 'HEAD']) };
 }
 
-export function main() {
+function writeLog(target, log) {
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(
+    target,
+    JSON.stringify(
+      { generatedAt: new Date().toISOString(), repoUrl: REPO_URL, ...log },
+      null,
+      2,
+    ) + '\n',
+  );
+}
+
+function oneLine(text) {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+// Writes the Build Log JSON to target. Exits 0 in every case.
+export function main(target = outputPath) {
   const notes = readAnnotations();
   let log;
   let status;
@@ -147,26 +164,21 @@ export function main() {
     log = { source: 'git', headSha, days: buildDays(commits, notes) };
     status = `build-log: source=git commits=${commits.length}`;
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
     log = {
       source: 'fallback',
       headSha: process.env.CF_PAGES_COMMIT_SHA || null,
       days: buildDays([], notes),
     };
-    status = `build-log: source=fallback reason=${reason}`;
+    status = `build-log: source=fallback reason=${oneLine(error.message)}`;
   }
-  mkdirSync(dirname(outputPath), { recursive: true });
-  writeFileSync(
-    outputPath,
-    JSON.stringify(
-      { generatedAt: new Date().toISOString(), repoUrl: REPO_URL, ...log },
-      null,
-      2,
-    ) + '\n',
-  );
+  try {
+    writeLog(target, log);
+  } catch (error) {
+    status = `build-log: source=fallback reason=${oneLine(error.message)}`;
+  }
   console.log(status);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  main();
+  main(process.env.BUILD_LOG_OUT || undefined);
 }
