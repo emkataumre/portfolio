@@ -39,6 +39,9 @@ const THRESHOLD = 0.8
 const DEAD_ZONE = 0.25
 const HYSTERESIS = 0.05
 const SPRING = { stiffness: 120, damping: 20 }
+// Touch: the face looks Down or Up with the scroll direction, then returns to Center.
+const SCROLL_STRENGTH = 0.9
+const SCROLL_IDLE_MS = 1500
 
 function clamp(value: number) {
   return Math.min(1, Math.max(-1, value))
@@ -75,7 +78,8 @@ export function nextPose(current: Pose, x: number, y: number): Pose {
 /**
  * Tracks the pointer relative to the avatar container. Returns the smoothed
  * vector, the active Pose, and the reduced motion flag. Under reduced motion
- * it attaches no listeners and the vector stays at zero.
+ * it attaches no listeners and the vector stays at zero. On a coarse primary
+ * pointer it ignores pointer moves and follows the scroll direction instead.
  */
 export function usePoseVector(container: RefObject<HTMLElement | null>) {
   const reduced = useReducedMotion() === true
@@ -95,6 +99,7 @@ export function usePoseVector(container: RefObject<HTMLElement | null>) {
     if (reduced) return
 
     let cancelled = false
+    const coarse = window.matchMedia('(pointer: coarse)').matches
 
     const onMove = (event: PointerEvent) => {
       const element = container.current
@@ -110,6 +115,18 @@ export function usePoseVector(container: RefObject<HTMLElement | null>) {
       rawY.set(0)
     }
 
+    let idle: number | undefined
+    let lastScrollY = window.scrollY
+    const onScroll = () => {
+      const delta = window.scrollY - lastScrollY
+      lastScrollY = window.scrollY
+      if (delta === 0) return
+      rawX.set(0)
+      rawY.set(delta > 0 ? SCROLL_STRENGTH : -SCROLL_STRENGTH)
+      window.clearTimeout(idle)
+      idle = window.setTimeout(reset, SCROLL_IDLE_MS)
+    }
+
     // Decode all nine Poses before tracking starts, so a swap never shows a blank image.
     Promise.allSettled(
       POSES.map((pose) => {
@@ -119,6 +136,10 @@ export function usePoseVector(container: RefObject<HTMLElement | null>) {
       }),
     ).then(() => {
       if (cancelled) return
+      if (coarse) {
+        window.addEventListener('scroll', onScroll, { passive: true })
+        return
+      }
       window.addEventListener('pointermove', onMove, { passive: true })
       document.documentElement.addEventListener('pointerleave', reset)
       window.addEventListener('blur', reset)
@@ -126,6 +147,8 @@ export function usePoseVector(container: RefObject<HTMLElement | null>) {
 
     return () => {
       cancelled = true
+      window.clearTimeout(idle)
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('pointermove', onMove)
       document.documentElement.removeEventListener('pointerleave', reset)
       window.removeEventListener('blur', reset)
