@@ -42,7 +42,7 @@ function WorkingMethod() {
       </div>
       <Reveal className="mt-8">
         <video
-          className={`aspect-[16/9] w-full rounded-[10px] border border-line bg-[#0b0b0c] transition-transform duration-500 ease-out motion-reduce:transform-none ${playing ? 'scale-[1.2]' : ''}`}
+          className={`aspect-[16/9] w-full rounded-[10px] border border-line bg-[#0b0b0c] transition-transform duration-500 ease-out motion-reduce:transform-none ${playing ? 'scale-[1.35]' : ''}`}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           src="/working-method.mp4"
@@ -52,9 +52,6 @@ function WorkingMethod() {
           preload="metadata"
           aria-label="One feature, from idea to production, in 53 seconds. Silent."
         />
-        <p className="mt-2 font-mono text-[0.8125rem] text-muted">
-          One feature, from idea to production. 53 s, silent.
-        </p>
       </Reveal>
       <Reveal as="p" className="mt-6 text-muted">
         The team version of this method is public:{' '}
