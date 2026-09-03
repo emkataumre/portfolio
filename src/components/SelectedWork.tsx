@@ -26,9 +26,9 @@ const entries = [
 function SelectedWork() {
   return (
     <div>
-      {entries.map(({ title, body, scale, status }) => (
+      {entries.map(({ title, body, scale, status }, index) => (
         <Fragment key={title}>
-          <Rule />
+          <Rule drawIndex={index} />
           <Reveal className="grid gap-6 py-[22px] min-[760px]:grid-cols-[1fr_auto]">
             <div>
               <h3 className="text-base font-semibold tracking-[-0.01em]">{title}</h3>
@@ -41,7 +41,7 @@ function SelectedWork() {
           </Reveal>
         </Fragment>
       ))}
-      <Rule />
+      <Rule drawIndex={entries.length} />
     </div>
   )
 }
