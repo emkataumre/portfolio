@@ -1,11 +1,16 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useTransform } from 'motion/react'
 import { POSES, poseSrc, usePoseVector } from './usePoseVector'
+import { CELL_PX, FLICKER_MS, FLICKER_OFFSET_PX, drawPixelOverlay } from './pixelOverlay'
+
+const FADE = 'opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1)'
 
 /** The hero Cursor Avatar. Nine stacked Pose images, the active one visible. */
 function CursorAvatar() {
   const container = useRef<HTMLDivElement>(null)
+  const canvas = useRef<HTMLCanvasElement>(null)
   const { x, y, pose, reduced } = usePoseVector(container)
+  const [hovered, setHovered] = useState(false)
 
   // Wobble: translate up to 2 px, rotate up to 1 deg, scale 1 to 1.01 by magnitude.
   const translateX = useTransform(x, (value) => value * 2)
@@ -15,12 +20,49 @@ function CursorAvatar() {
     ([valueX, valueY]: number[]) => 1 + Math.min(1, Math.hypot(valueX, valueY)) * 0.01,
   )
 
+  // Hover overlay: draw the active Pose on enter, on Pose change, on resize, and every
+  // 300 ms with a random source offset. Reduced motion draws once and skips the flicker.
+  useEffect(() => {
+    if (!hovered) return
+
+    const image = new Image()
+    image.src = poseSrc(pose)
+    let cancelled = false
+    let timer: number | undefined
+
+    const draw = () => {
+      const frame = container.current
+      const target = canvas.current
+      if (cancelled || !frame || !target) return
+      const cells = Math.round(frame.clientWidth / CELL_PX)
+      const offset = reduced ? 0 : Math.floor(Math.random() * (FLICKER_OFFSET_PX + 1))
+      drawPixelOverlay(target, image, cells, offset)
+    }
+
+    image.decode().then(() => {
+      if (cancelled) return
+      draw()
+      if (!reduced) timer = window.setInterval(draw, FLICKER_MS)
+    })
+    window.addEventListener('resize', draw)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+      window.removeEventListener('resize', draw)
+    }
+  }, [hovered, pose, reduced])
+
   return (
     <div
       ref={container}
       role="img"
       aria-label="Emil Vladinov"
       className="order-first size-55 justify-self-start overflow-hidden rounded-[28px] bg-[#e9e9e6] min-[760px]:order-none min-[760px]:size-70 min-[760px]:justify-self-end"
+      onPointerEnter={() => {
+        if (!window.matchMedia('(pointer: coarse)').matches) setHovered(true)
+      }}
+      onPointerLeave={() => setHovered(false)}
     >
       <motion.div
         className="relative size-full"
@@ -38,6 +80,16 @@ function CursorAvatar() {
             style={{ visibility: name === pose ? 'visible' : 'hidden' }}
           />
         ))}
+        <canvas
+          ref={canvas}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 size-full"
+          style={{
+            imageRendering: 'pixelated',
+            opacity: hovered ? 1 : 0,
+            transition: reduced ? 'none' : FADE,
+          }}
+        />
       </motion.div>
     </div>
   )
