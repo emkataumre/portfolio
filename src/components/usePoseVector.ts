@@ -15,24 +15,26 @@ export const POSES = [
 
 export type Pose = (typeof POSES)[number]
 
+/** Path of the WebP image for a Pose. */
 export function poseSrc(pose: Pose) {
   return `/avatar/pose-${pose}.webp`
 }
 
 // Unit vectors in screen space. Y points down, so Up is [0, -1].
-const D = Math.SQRT1_2
+const DIAGONAL = Math.SQRT1_2
 const DIRECTIONS: ReadonlyArray<readonly [Pose, number, number]> = [
   ['up', 0, -1],
   ['down', 0, 1],
   ['left', -1, 0],
   ['right', 1, 0],
-  ['up-left', -D, -D],
-  ['up-right', D, -D],
-  ['down-left', -D, D],
-  ['down-right', D, D],
+  ['up-left', -DIAGONAL, -DIAGONAL],
+  ['up-right', DIAGONAL, -DIAGONAL],
+  ['down-left', -DIAGONAL, DIAGONAL],
+  ['down-right', DIAGONAL, DIAGONAL],
 ]
 
 const STRENGTH = 1.6
+// Guard only. A normalised vector always scores at least cos(22.5 deg) = 0.92 against its nearest direction.
 const THRESHOLD = 0.8
 const DEAD_ZONE = 0.25
 const HYSTERESIS = 0.05
@@ -42,22 +44,23 @@ function clamp(value: number) {
   return Math.min(1, Math.max(-1, value))
 }
 
-// Picks the Pose for a smoothed vector. The current Pose keeps until a rival
-// beats its score by the hysteresis. Leaving Center needs a magnitude above the
-// dead zone. Returning to Center needs a magnitude below the dead zone minus
-// the hysteresis.
+/**
+ * Picks the Pose for a smoothed vector. The current Pose keeps until a rival
+ * beats its score by the hysteresis. The dead zone has a symmetric band:
+ * leaving Center needs a magnitude above 0.30, returning needs one below 0.20.
+ */
 export function nextPose(current: Pose, x: number, y: number): Pose {
   const magnitude = Math.hypot(x, y)
-  const exit = current === 'center' ? DEAD_ZONE : DEAD_ZONE - HYSTERESIS
+  const exit = current === 'center' ? DEAD_ZONE + HYSTERESIS : DEAD_ZONE - HYSTERESIS
   if (magnitude < exit) return 'center'
 
-  const nx = x / magnitude
-  const ny = y / magnitude
+  const unitX = x / magnitude
+  const unitY = y / magnitude
   let best: Pose = 'center'
   let bestScore = -Infinity
   let currentScore = -Infinity
-  for (const [pose, dx, dy] of DIRECTIONS) {
-    const score = nx * dx + ny * dy
+  for (const [pose, directionX, directionY] of DIRECTIONS) {
+    const score = unitX * directionX + unitY * directionY
     if (pose === current) currentScore = score
     if (score > bestScore) {
       best = pose
@@ -69,11 +72,13 @@ export function nextPose(current: Pose, x: number, y: number): Pose {
   return bestScore >= THRESHOLD ? best : current
 }
 
-// Tracks the pointer relative to the frame. Returns the smoothed vector and
-// the active Pose. Under reduced motion it attaches no listeners and the
-// vector stays at zero.
-export function usePoseVector(frame: RefObject<HTMLElement | null>) {
-  const reduced = useReducedMotion()
+/**
+ * Tracks the pointer relative to the avatar container. Returns the smoothed
+ * vector, the active Pose, and the reduced motion flag. Under reduced motion
+ * it attaches no listeners and the vector stays at zero.
+ */
+export function usePoseVector(container: RefObject<HTMLElement | null>) {
+  const reduced = useReducedMotion() === true
   const rawX = useMotionValue(0)
   const rawY = useMotionValue(0)
   const x = useSpring(rawX, SPRING)
@@ -92,25 +97,25 @@ export function usePoseVector(frame: RefObject<HTMLElement | null>) {
     let cancelled = false
 
     const onMove = (event: PointerEvent) => {
-      const el = frame.current
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      const cx = rect.left + rect.width / 2
-      const cy = rect.top + rect.height / 2
-      rawX.set(clamp(((event.clientX - cx) / (window.innerWidth / 2)) * STRENGTH))
-      rawY.set(clamp(((event.clientY - cy) / (window.innerHeight / 2)) * STRENGTH))
+      const element = container.current
+      if (!element) return
+      const rect = element.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+      rawX.set(clamp(((event.clientX - centerX) / (window.innerWidth / 2)) * STRENGTH))
+      rawY.set(clamp(((event.clientY - centerY) / (window.innerHeight / 2)) * STRENGTH))
     }
     const reset = () => {
       rawX.set(0)
       rawY.set(0)
     }
 
-    // Decode all nine Poses before tracking starts, so a swap never shows a blank frame.
+    // Decode all nine Poses before tracking starts, so a swap never shows a blank image.
     Promise.allSettled(
-      POSES.map((p) => {
-        const img = new Image()
-        img.src = poseSrc(p)
-        return img.decode()
+      POSES.map((pose) => {
+        const image = new Image()
+        image.src = poseSrc(pose)
+        return image.decode()
       }),
     ).then(() => {
       if (cancelled) return
@@ -125,7 +130,7 @@ export function usePoseVector(frame: RefObject<HTMLElement | null>) {
       document.documentElement.removeEventListener('pointerleave', reset)
       window.removeEventListener('blur', reset)
     }
-  }, [reduced, frame, rawX, rawY])
+  }, [reduced, container, rawX, rawY])
 
-  return { x, y, pose }
+  return { x, y, pose, reduced }
 }
