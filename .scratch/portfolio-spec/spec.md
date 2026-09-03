@@ -176,7 +176,9 @@ One component, `CursorAvatar`, no props in v1. One hook, `usePoseVector`, that r
 
 Changed on 2026-09-03 from a permanent filter to a hover effect. Source: [Cursor Avatar: hover pixel overlay](https://github.com/emkataumre/portfolio/issues/19).
 
-Off hover the Reader sees the plain Pose. While the pointer hovers the frame, a two-colour pixel version of the active Pose fades in over it and flickers. On leave it fades out.
+Off hover the Reader sees the active Pose behind a full-colour pixel filter with 2 px cells. While the pointer hovers the frame, a two-colour pixel version of the active Pose fades in over it and flickers. On leave it fades out.
+
+- Pixel filter: one `canvas` above the nine images, `image-rendering: pixelated`, `aria-hidden`. Cells of 2 px, 140 by 140 at 280 px, 110 by 110 at 220 px. Redraw on Pose change and on resize. Always on. Emil brought the filter back at 2 px on 2026-09-03 after seeing the hover overlay alone.
 
 - One overlay `canvas` above the nine images, `pointer-events: none`, `image-rendering: pixelated`, `aria-hidden`.
 - Grid: 28 by 28 cells at 280 px, 22 by 22 at 220 px. Square cells of 10 px.
