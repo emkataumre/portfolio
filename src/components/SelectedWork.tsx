@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import Reveal from './Reveal'
 import Rule from './Rule'
 
 const entries = [
@@ -28,7 +29,7 @@ function SelectedWork() {
       {entries.map(({ title, body, scale, status }) => (
         <Fragment key={title}>
           <Rule />
-          <div className="grid gap-6 py-[22px] min-[760px]:grid-cols-[1fr_auto]">
+          <Reveal className="grid gap-6 py-[22px] min-[760px]:grid-cols-[1fr_auto]">
             <div>
               <h3 className="text-base font-semibold tracking-[-0.01em]">{title}</h3>
               <p className="mt-1 text-muted">{body}</p>
@@ -37,7 +38,7 @@ function SelectedWork() {
               <p className="font-medium">{scale}</p>
               <p className="mt-0.5 text-muted">{status}</p>
             </div>
-          </div>
+          </Reveal>
         </Fragment>
       ))}
       <Rule />

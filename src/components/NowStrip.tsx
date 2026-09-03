@@ -1,3 +1,5 @@
+import Reveal from './Reveal'
+
 const entries = [
   {
     label: 'Now',
@@ -11,7 +13,7 @@ const entries = [
 
 function NowStrip() {
   return (
-    <dl className="mt-18 border-t border-line text-[0.95rem] leading-[1.5]">
+    <Reveal as="dl" delay={0.34} className="mt-18 border-t border-line text-[0.95rem] leading-[1.5]">
       {entries.map(({ label, text }) => (
         <div
           key={label}
@@ -22,7 +24,7 @@ function NowStrip() {
           <dd>{text}</dd>
         </div>
       ))}
-    </dl>
+    </Reveal>
   )
 }
 
