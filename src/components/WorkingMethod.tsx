@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Reveal from './Reveal'
 
 const principles = [
@@ -24,6 +25,7 @@ const principles = [
 ]
 
 function WorkingMethod() {
+  const [playing, setPlaying] = useState(false)
   return (
     <>
       <Reveal as="p" className="mb-7 text-muted">
@@ -40,7 +42,9 @@ function WorkingMethod() {
       </div>
       <Reveal className="mt-8">
         <video
-          className="aspect-[16/9] w-full rounded-[10px] border border-line bg-[#0b0b0c]"
+          className={`aspect-[16/9] w-full rounded-[10px] border border-line bg-[#0b0b0c] transition-transform duration-500 ease-out motion-reduce:transform-none ${playing ? 'scale-[1.04]' : ''}`}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
           src="/working-method.mp4"
           poster="/working-method-poster.jpg"
           controls
