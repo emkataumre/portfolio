@@ -210,6 +210,7 @@ Source: [Build Log generation](https://github.com/emkataumre/portfolio/issues/7)
 - The script never fails the build. With no usable history it writes `source: "fallback"` and the page shows notes only, plus the line "Commit history was not available at build time. See the repository on GitHub." with a link.
 - The script prints one line: `build-log: source=git commits=<n>` or `build-log: source=fallback reason=<text>`.
 - The script reads no `CF_PAGES_*` variable except `CF_PAGES_COMMIT_SHA` as a fallback for `headSha`.
+- The script removes the git trailer lines from `body`, and `filesChanged` counts the paths from `--name-only`.
 
 Data shape:
 
