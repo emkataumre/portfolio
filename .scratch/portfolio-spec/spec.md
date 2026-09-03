@@ -185,7 +185,7 @@ Off hover the Reader sees the plain Pose. While the pointer hovers the frame, a 
 - Fade 0.4 s with the site easing.
 - Coarse pointer: no overlay.
 
-Open: the alt text, OG image, and favicon still describe a pixelated portrait. Decision pending on the ticket.
+The OG image and the favicon keep the pixel look as a brand mark. The Center alt text stays "Pixelated portrait of Emil Vladinov". Decided 2026-09-03.
 
 ### 6.5 Touch
 
