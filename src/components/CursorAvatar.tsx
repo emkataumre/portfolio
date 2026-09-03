@@ -102,7 +102,7 @@ function CursorAvatar() {
       ref={container}
       role="img"
       aria-label="Emil Vladinov"
-      className="order-first size-55 justify-self-start overflow-hidden rounded-[28px] bg-[#e9e9e6] min-[760px]:order-none min-[760px]:size-70 min-[760px]:justify-self-end"
+      className="size-55 overflow-hidden rounded-[28px] bg-[#e9e9e6] min-[760px]:size-70"
       onPointerEnter={() => {
         if (!window.matchMedia('(pointer: coarse)').matches) setHovered(true)
       }}

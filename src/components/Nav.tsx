@@ -1,6 +1,15 @@
+import { motion } from 'motion/react'
+import { EASE } from './ease'
+
 function Nav() {
   return (
-    <nav aria-label="Main" className="flex flex-wrap items-center justify-between gap-x-7 gap-y-2 text-sm">
+    <motion.nav
+      aria-label="Main"
+      className="flex flex-wrap items-center justify-between gap-x-7 gap-y-2 text-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: EASE }}
+    >
       <span>Emil Vladinov</span>
       <div className="flex flex-wrap gap-x-7 gap-y-2">
         <a href="/#work">Work</a>
@@ -10,7 +19,7 @@ function Nav() {
           Contact
         </a>
       </div>
-    </nav>
+    </motion.nav>
   )
 }
 
