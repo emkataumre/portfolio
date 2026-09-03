@@ -50,7 +50,7 @@ function WorkingMethod() {
           controls
           playsInline
           preload="metadata"
-          aria-label="One feature, from idea to production, in 53 seconds. Silent."
+          aria-label="One feature, from idea to production, in 70 seconds. Silent."
         />
       </Reveal>
       <Reveal as="p" className="mt-6 text-muted">
