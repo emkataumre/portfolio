@@ -1,3 +1,4 @@
+import BuildLogTeaser from './components/BuildLogTeaser'
 import Hero from './components/Hero'
 import NowStrip from './components/NowStrip'
 import Page from './components/Page'
@@ -20,8 +21,8 @@ function App() {
       >
         <SelectedWork />
       </Section>
-      <Section id="build-log" label="Build Log" subline="Placeholder subline.">
-        <p>Build Log teaser placeholder.</p>
+      <Section id="build-log" label="Build Log" subline="The one thing you can verify">
+        <BuildLogTeaser />
       </Section>
     </Page>
   )
