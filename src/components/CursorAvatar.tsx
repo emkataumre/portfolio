@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useTransform } from 'motion/react'
 import { POSES, poseSrc, usePoseVector, type Pose } from './usePoseVector'
-import { FLICKER_MS, drawPixelOverlay } from './pixelOverlay'
+import { FLICKER_MS, drawPixelFilter, drawPixelOverlay } from './pixelOverlay'
 
 const FADE = 'opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1)'
 
@@ -21,6 +21,7 @@ function loadPose(pose: Pose) {
 /** The hero Cursor Avatar. Nine stacked Pose images, the active one visible. */
 function CursorAvatar() {
   const container = useRef<HTMLDivElement>(null)
+  const filter = useRef<HTMLCanvasElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const { x, y, pose, reduced } = usePoseVector(container)
   const [hovered, setHovered] = useState(false)
@@ -34,6 +35,32 @@ function CursorAvatar() {
     [x, y],
     ([valueX, valueY]: number[]) => 1 + Math.min(1, Math.hypot(valueX, valueY)) * 0.01,
   )
+
+  // Pixel filter: always on, redraw on Pose change and on resize.
+  useEffect(() => {
+    let cancelled = false
+    let cleanup = () => {}
+
+    loadPose(pose)
+      .then((image) => {
+        if (cancelled) return
+        const draw = () => {
+          const frame = container.current
+          const target = filter.current
+          if (!frame || !target) return
+          drawPixelFilter(target, image, frame.clientWidth)
+        }
+        draw()
+        window.addEventListener('resize', draw)
+        cleanup = () => window.removeEventListener('resize', draw)
+      })
+      .catch(() => {})
+
+    return () => {
+      cancelled = true
+      cleanup()
+    }
+  }, [pose])
 
   // Hover overlay: draw the active Pose on enter, on Pose change, on resize, and on an
   // interval with a random source offset. Reduced motion draws once and skips the flicker.
@@ -100,6 +127,12 @@ function CursorAvatar() {
             style={{ visibility: name === pose ? 'visible' : 'hidden' }}
           />
         ))}
+        <canvas
+          ref={filter}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 size-full"
+          style={{ imageRendering: 'pixelated' }}
+        />
         <canvas
           ref={canvas}
           aria-hidden
