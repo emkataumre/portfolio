@@ -42,7 +42,7 @@ function WorkingMethod() {
       </div>
       <Reveal className="mt-8">
         <video
-          className={`aspect-[16/9] w-full rounded-[10px] border border-line bg-[#0b0b0c] transition-transform duration-500 ease-out motion-reduce:transform-none ${playing ? 'scale-[1.04]' : ''}`}
+          className={`aspect-[16/9] w-full rounded-[10px] border border-line bg-[#0b0b0c] transition-transform duration-500 ease-out motion-reduce:transform-none ${playing ? 'scale-[1.2]' : ''}`}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           src="/working-method.mp4"
