@@ -1,11 +1,10 @@
 import { Fragment } from 'react'
+import Rule from '../components/Rule'
 
 export type Commit = {
   sha: string
   shortSha: string
-  date: string
   subject: string
-  body: string
   filesChanged: number
 }
 
@@ -18,11 +17,6 @@ export type Day = {
 type BuildLogDaysProps = {
   days: Day[]
   repoUrl: string
-}
-
-/** A separate element, not a border, so the motion ticket can animate scaleX on it. */
-function Rule() {
-  return <div aria-hidden="true" className="h-px origin-left bg-line" />
 }
 
 function files(count: number) {

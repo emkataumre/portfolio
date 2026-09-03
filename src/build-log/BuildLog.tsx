@@ -9,7 +9,14 @@ type BuildLogData = {
   days: Day[]
 }
 
-const { repoUrl, source, days } = data as BuildLogData
+const log = data as BuildLogData
+const { repoUrl, source } = log
+
+/** In fallback the page shows the notes alone, whatever the generator emitted. */
+const days =
+  source === 'fallback'
+    ? log.days.map((day) => ({ ...day, commits: [] }))
+    : log.days
 
 const linkClass = 'underline decoration-line underline-offset-4 hover:decoration-current'
 
