@@ -172,9 +172,20 @@ One component, `CursorAvatar`, no props in v1. One hook, `usePoseVector`, that r
 - Pose selection in `useMotionValueEvent` on the smoothed values: dot score against the eight unit vectors. Threshold 0.8, dead zone 0.25 for Center, hysteresis 0.05 before a swap.
 - Wobble on the smoothed vector through `useTransform`: translate 2 px, rotate 1 deg, scale 1 to 1.01.
 
-### 6.4 Pixel filter
+### 6.4 Hover pixel overlay
 
-Draw the active Pose into a canvas of (frame width / 3) cells per side and upscale with `image-rendering: pixelated`. At 280 px that is a 93 by 93 grid. Redraw on Pose change and on resize. The filter is deliberate: the Poses are AI-generated from Emil's likeness, and the filter says so.
+Changed on 2026-09-03 from a permanent filter to a hover effect. Source: [Cursor Avatar: hover pixel overlay](https://github.com/emkataumre/portfolio/issues/19).
+
+Off hover the Reader sees the plain Pose. While the pointer hovers the frame, a two-colour pixel version of the active Pose fades in over it and flickers. On leave it fades out.
+
+- One overlay `canvas` above the nine images, `pointer-events: none`, `image-rendering: pixelated`, `aria-hidden`.
+- Grid: 28 by 28 cells at 280 px, 22 by 22 at 220 px. Square cells of 10 px.
+- Two colours, luminance threshold 128, no dithering: `accent` for dark cells, `bg` for light cells.
+- Draw on `pointerenter`, on Pose change while hovered, and on resize. Flicker: redraw every 300 ms with a random 0 to 3 px source offset.
+- Fade 0.4 s with the site easing.
+- Coarse pointer: no overlay.
+
+Open: the alt text, OG image, and favicon still describe a pixelated portrait. Decision pending on the ticket.
 
 ### 6.5 Touch
 
@@ -182,7 +193,7 @@ On a coarse primary pointer (`(pointer: coarse)`): idle drift. Every 2.5 to 4 s 
 
 ### 6.6 Reduced motion
 
-Static Center Pose, no wobble, no drift, no tracking. The pixel filter still applies.
+Static Center Pose, no wobble, no drift, no tracking. The hover overlay switches on and off instantly, with no fade and no flicker.
 
 ## 7. Build Log
 
