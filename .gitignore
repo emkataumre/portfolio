@@ -5,5 +5,4 @@ dist/
 .claude/settings.local.json
 .playwright-mcp/
 .claude/worktrees/
-src/build-log/build-log.json
 .scratch/shots/

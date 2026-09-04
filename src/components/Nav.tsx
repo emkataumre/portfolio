@@ -14,7 +14,7 @@ function Nav() {
       <div className="flex flex-wrap gap-x-7 gap-y-2">
         <a href="/#work">Work</a>
         <a href="/#method">Method</a>
-        <a href="/build-log/">Build Log</a>
+        <a href="/#activity">Activity</a>
         <a href="#contact" className="text-accent">
           Contact
         </a>

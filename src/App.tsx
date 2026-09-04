@@ -1,4 +1,3 @@
-import BuildLogTeaser from './components/BuildLogTeaser'
 import Hero from './components/Hero'
 import NowStrip from './components/NowStrip'
 import Page from './components/Page'
@@ -20,9 +19,6 @@ function App() {
         subline="Inact, 2026. A legacy Go and React monorepo, 415k lines."
       >
         <SelectedWork />
-      </Section>
-      <Section id="build-log" label="Build Log" subline="The one thing you can verify">
-        <BuildLogTeaser />
       </Section>
     </Page>
   )
