@@ -4,14 +4,14 @@ Status: final, 2026-09-02. Confirmed build-ready by Emil. Assembled from the way
 
 This spec is the hand-off to the build effort. A build session starts from this file and makes no new product decision. Where a detail is not here, the resolved ticket linked in each section holds it.
 
-Glossary: `CONTEXT.md` at the repo root. Terms: Reader, Cursor Avatar, Pose, Working Method, Testimony, Build Log.
+Glossary: `CONTEXT.md` at the repo root. Terms: Reader, Cursor Avatar, Pose, Working Method, Testimony, Activity.
 
 ## 1. Scope
 
-- One public page plus one Build Log route. Two activity grids and a counter row on the home page, fed by a scheduled job on Emil's machine (section 11).
+- One public page. One commits grid and a counter row on the home page, fed by a scheduled job on Emil's machine (section 11).
 - Reader: an engineering lead or senior peer. A recruiter gets the gist from the headline and lede alone.
 - English only. No analytics. No dark theme. No custom domain. No CV download, skills list, or earlier jobs.
-- Tone: state Testimony plainly. The Build Log is the only verifiable artifact.
+- Tone: state Testimony plainly. The GitHub numbers in the Activity section are the verifiable artifact. The Claude Code numbers are self-reported and carry a mark that says so.
 - Public repo. No customer names, colleague names, secrets, or internal issue numbers anywhere in the repo.
 
 Out of scope for the build: the Working Method video (the build ships the placeholder slot), MCP or agent features in the site, a second avatar outfit.
@@ -20,12 +20,12 @@ Out of scope for the build: the Working Method video (the build ships the placeh
 
 Single page, in this order. Source: [Visual direction prototype](https://github.com/emkataumre/portfolio/issues/9).
 
-1. Nav: name left, four links right. Work, Method, Build Log, Contact. Contact is the accent link.
+1. Nav: name left, four links right. Work, Method, Activity, Contact. Contact is the accent link.
 2. Hero: headline and lede left, Cursor Avatar right.
 3. Now strip: two ruled rows.
 4. Working Method.
 5. Selected Work.
-6. Build Log teaser, with one link to `/build-log/`, and under it the Activity block: two grids and a counter row.
+6. Activity: one commits grid and a counter row (section 11).
 7. Footer with contact links.
 
 Sections 4 to 6 use the two-column layout: a 200 px sticky label rail left (label plus muted subline), content right. Gap 40 px, section spacing 96 px.
@@ -38,7 +38,7 @@ All copy is final. Do not reword it in the build. Source tickets: [Positioning a
 
 ### 3.1 Nav
 
-`Emil Vladinov` left. Links: Work, Method, Build Log, Contact.
+`Emil Vladinov` left. Links: Work, Method, Activity, Contact.
 
 ### 3.2 Hero
 
@@ -87,15 +87,13 @@ Three ruled entries. Each: title, one outcome paragraph left, meta column right 
 
 1. **Tasks: turn an insight into work someone owns.** Any finding in the product becomes a task with an owner, a due date, and a state. Tasks show up on seven grid views and one My Tasks page, and the right people get mail when something changes. Built alone, end to end. Meta: `21k lines · 154 files` / `In final review for the September release`.
 2. **Mentions: @ a colleague, # a record.** Type @ to bring a colleague into a comment or task, # to link the record it is about. Search ranks the match as you type. One composer serves comments and tasks. Meta: `5k lines` / `In final review`.
-3. **This site.** Planned and built with the same method, in public. Every decision is in the Build Log. Meta: `Vite, React, Framer Motion` / `Public repo`.
+3. **This site.** Planned and built with the same method, in public. Every decision is in the public repo. Meta: `Vite, React, Framer Motion` / `Public repo`.
 
-### 3.6 Build Log teaser
+### 3.6 Activity
 
-Label: **Build Log**. Subline: **The one thing you can verify**.
+Label: **Activity**. No subline.
 
-Ruled rows: mono date left (110 px column), the day note right. Show the three most recent days that have a note. Below: accent link `Read the full Build Log →` to `/build-log/`.
-
-Under the link, inside the same section: the Activity block from section 11.
+The section holds the Activity block from section 11: one commits grid and a counter row. Section `id` is `activity`. The nav links to `/#activity`.
 
 ### 3.7 Footer
 
@@ -199,54 +197,13 @@ On a coarse primary pointer (`(pointer: coarse)`): idle drift. Every 2.5 to 4 s 
 
 Static Center Pose, no wobble, no drift, no tracking. The hover overlay switches on and off instantly, with no fade and no flicker.
 
-## 7. Build Log
+## 7. Build Log (removed)
 
-Source: [Build Log generation](https://github.com/emkataumre/portfolio/issues/7), research at `.scratch/portfolio-spec/research/build-log-generation.md`.
+Removed on 2026-09-04. See the decision on [issue #1](https://github.com/emkataumre/portfolio/issues/1) and the removal ticket [#39](https://github.com/emkataumre/portfolio/issues/39).
 
-### 7.1 Mechanism
+The Build Log rendered this site's own git history. It goes quiet the day the build ends, so the section would read as dead. The Activity section in section 11 replaces it. The generator, the page, the `/build-log/` route, and the teaser are all deleted. The old URL answers 404 and gets no redirect.
 
-- `scripts/build-log.mjs` runs as the npm `prebuild` script. It reads `git log --no-merges --invert-grep --grep='^activity: '` and writes `src/build-log/build-log.json`. The JSON file is in `.gitignore`. The grep filter drops the activity job commits from section 11.
-- On Cloudflare the clone is shallow. The script runs `git rev-parse --is-shallow-repository` and, when it prints `true`, `git fetch --unshallow`. It continues on error.
-- Day grouping: the author date converted to `Europe/Copenhagen`, keyed `YYYY-MM-DD`.
-- Human notes live in `build-log/annotations.md`. One `## YYYY-MM-DD` heading per day, the note as the body. Two to four sentences. STE-flavoured. Days with a note but no commits still render.
-- The script never fails the build. With no usable history it writes `source: "fallback"` and the page shows notes only, plus the line "Commit history was not available at build time. See the repository on GitHub." with a link.
-- The script prints one line: `build-log: source=git commits=<n>` or `build-log: source=fallback reason=<text>`.
-- The script reads no `CF_PAGES_*` variable except `CF_PAGES_COMMIT_SHA` as a fallback for `headSha`.
-- The script removes the git trailer lines from `body`, and `filesChanged` counts the paths from `--name-only`.
-
-Data shape:
-
-```ts
-type BuildLogCommit = { sha: string; shortSha: string; date: string; subject: string; body: string; filesChanged: number };
-type BuildLogDay = { day: string; note: string | null; commits: BuildLogCommit[] };
-type BuildLog = { generatedAt: string; source: "git" | "fallback"; repoUrl: string; headSha: string | null; days: BuildLogDay[] };
-```
-
-Days and commits are newest first.
-
-### 7.2 Route
-
-`/build-log` is a second HTML entry in the Vite multi-page build: `build-log/index.html` with its own React root, listed in `rollupOptions.input`. Cloudflare Pages serves `dist/build-log/index.html` for `/build-log/` and redirects `/build-log` to it with a 307. All links use `/build-log/`. No router library. Links between the pages are plain `<a href>`. The page has its own title and meta description (section 9).
-
-### 7.3 Build Log page
-
-Same nav and footer as the home page. Label: **Build Log**. Subline: **How this site was built, day by day.** One block per day: mono date, the note, then the commits of that day as ruled rows with short SHA (mono, a link to the commit on GitHub), subject, and files changed. A day with no note shows the commits alone.
-
-The planning files under `.scratch/portfolio-spec/` appear as GitHub links only. The Build Log page has one line above the days: "Planning lives in the repo: the map, its tickets, research notes, and prototypes." with a link to `.scratch/portfolio-spec/` on GitHub. No rendering of markdown in the site.
-
-### 7.4 First entries
-
-`build-log/annotations.md` starts with the planning day:
-
-```md
-# Build Log annotations
-
-## 2026-09-02
-
-Planning day. Charted the map, worked ten tickets, and wrote this spec. Three research notes, two prototypes, nine Pose images. No site code yet.
-```
-
-The build effort adds one note per working day.
+The section number stays so that the ticket references to sections 8 to 12 keep their meaning.
 
 ## 8. Stack and deploy
 
@@ -259,29 +216,29 @@ Scaffold checklist, in order:
 1. `node -v` is 20.19+ or 22.12+.
 2. `npm create vite@latest portfolio -- --template react-ts` at the repo root, then move the generated files up so `package.json` sits at the root next to `.scratch/`.
 3. `npm install tailwindcss @tailwindcss/vite motion`.
-4. `vite.config.ts`: plugins `react()` and `tailwindcss()`, plus `build.rollupOptions.input` with `index.html` and `build-log/index.html`.
+4. `vite.config.ts`: plugins `react()` and `tailwindcss()`. One entry, `index.html`.
 5. `src/index.css`: `@import "tailwindcss";` plus the `@theme` tokens from section 4. Delete `App.css`.
 6. `.nvmrc` with `22`.
-7. `scripts/build-log.mjs` and the `prebuild` script. `build` stays `tsc -b && vite build`.
-8. `<MotionConfig reducedMotion="user">` around the root of both pages.
+7. No `prebuild` script. `build` stays `tsc -b && vite build`.
+8. `<MotionConfig reducedMotion="user">` around the root.
 9. Copy the nine Poses to `public/avatar/`.
-10. `.gitignore`: add `src/build-log/build-log.json` and `.scratch/shots/`.
-11. `npm run build`, then `npm run preview`. Both pages load. Console has no errors.
+10. `.gitignore`: add `.scratch/shots/`.
+11. `npm run build`, then `npm run preview`. The page loads. Console has no errors.
 12. Do not add `public/404.html`.
 
 Cloudflare Pages: connect the GitHub repo, production branch `main`, preset React (Vite), build command `npm run build`, output `dist`, root directory empty. Every push to `main` deploys. Pull requests get preview URLs. Free `*.pages.dev` subdomain.
 
-Playwright MCP: use the user-scope server. Do not add `.mcp.json` to the repo. Every screenshot needs a `filename` under `.scratch/shots/` and a Read. Check loop per change: resize 1280x800, navigate, snapshot, screenshot, resize 390x844, screenshot, then the same for `/build-log/`, then console errors must be empty. Reduced motion check through `page.emulateMedia({ reducedMotion: "reduce" })`.
+Playwright MCP: use the user-scope server. Do not add `.mcp.json` to the repo. Every screenshot needs a `filename` under `.scratch/shots/` and a Read. Check loop per change: resize 1280x800, navigate, snapshot, screenshot, resize 390x844, screenshot, then console errors must be empty. Reduced motion check through `page.emulateMedia({ reducedMotion: "reduce" })`.
 
 ## 9. Head, SEO, and social
 
-Research: `.scratch/portfolio-spec/research/seo-and-social.md`. Google renders JavaScript, so the static head plus the React-rendered body is enough for two pages. No prerender step. Social scrapers read only the static HTML, so every tag below sits in `index.html` and `build-log/index.html`, never in React.
+Research: `.scratch/portfolio-spec/research/seo-and-social.md`. Google renders JavaScript, so the static head plus the React-rendered body is enough. No prerender step. Social scrapers read only the static HTML, so every tag below sits in `index.html`, never in React.
 
 ### 9.1 Site URL
 
-The production URL is `https://<project>.pages.dev/`. The build effort replaces `<project>` with the Pages project name in five places. The places are `SITE_URL` in `src/site.ts`, both HTML entries, `public/robots.txt`, and `public/sitemap.xml`. `CF_PAGES_URL` is the deployment URL, not the production URL, so the build does not read it.
+The production URL is `https://<project>.pages.dev/`. The build effort replaces `<project>` with the Pages project name in four places. The places are `SITE_URL` in `src/site.ts`, `index.html`, `public/robots.txt`, and `public/sitemap.xml`. `CF_PAGES_URL` is the deployment URL, not the production URL, so the build does not read it.
 
-URL paths: `/` and `/build-log/`. Cloudflare Pages answers `/build-log` with a 307 to `/build-log/`, so every internal link, canonical, and sitemap entry uses the slash form.
+URL path: `/` only. The Activity section is an in-page anchor, `/#activity`.
 
 A custom domain is out of scope. When one comes, the move is one constant change, a Cloudflare Bulk Redirect from `*.pages.dev` to the domain, and Change of Address in Search Console.
 
@@ -292,9 +249,8 @@ Google sets no character limit and truncates to the device width. The target her
 | Page | `<title>` | Meta description |
 |---|---|---|
 | Home | `Real software, built with AI agents · Emil Vladinov` (51) | `Software engineer in Copenhagen. I ship real software with AI coding agents such as Claude Code. Small steps, tests, review, runtime verification.` (146) |
-| Build Log | `Build Log: how this site was built · Emil Vladinov` (50) | `How this site was built with AI agents, day by day. Notes and commits from the git history of an agentic coding project driven with Claude Code.` (144) |
 
-The home title keeps the headline and puts the name last. "Copenhagen" and "Claude Code" sit in the descriptions, not in the copy. No `meta keywords`. Google ignores it.
+The title keeps the headline and puts the name last. "Copenhagen" and "Claude Code" sit in the descriptions, not in the copy. No `meta keywords`. Google ignores it.
 
 ### 9.3 Head of the home page
 
@@ -324,8 +280,6 @@ The home title keeps the headline and puts the name last. "Copenhagen" and "Clau
 <meta name="twitter:image" content="https://<project>.pages.dev/og.png">
 <meta name="twitter:image:alt" content="Real software, built with AI agents. A pixelated portrait of Emil Vladinov beside the headline.">
 ```
-
-The Build Log head has the same shape with its own title, description, canonical `https://<project>.pages.dev/build-log/`, `og:url`, and the same `og.png`. No preload of the Pose on that page.
 
 ### 9.4 Structured data
 
@@ -388,27 +342,27 @@ One JSON-LD script in the head of the home page. Google's policy: mark up only w
 </script>
 ```
 
-The Build Log page carries one `WebPage`: `@id` `https://<project>.pages.dev/build-log/#page`, `url`, `name` equal to its title, `description` equal to its meta description, `isPartOf` the `#website` id, `about` the `#person` id, `inLanguage` `en`.
-
 ### 9.5 Open Graph image
 
 `public/og.png`, 1200 by 630 px, PNG, under 300 KB. That size meets the LinkedIn minimum of 1200 by 627 and the 1.91:1 ratio. X crops it to 2:1, so no text sits in the top or bottom 40 px.
 
-Content: `bg` colour. Left: the headline in the display type, weight 700, about 64 px, `text` colour. Under it, one mono line in `muted`: `Emil Vladinov · Software engineer in Copenhagen`. Right: the Center Pose, 400 px square, radius 40 px, behind the pixel filter. Side padding 80 px.
+Content: `bg` colour. Left: the headline in the display type, weight 700, about 64 px, `text` colour. Under it, one mono line in `muted`: `Emil Vladinov · Software engineer in Copenhagen`. The headline does not fit the left column on fewer than three lines, so it wraps to three, left aligned. Right: the Center Pose, 400 px square, radius 40 px, behind the pixel filter. The Pose looks straight at the Reader, which is correct for a share card. Side padding 80 px.
 
-Production: `scripts/og/og.html` holds the template with the same tokens and the self-hosted Inter. `scripts/og.mjs` opens it with Playwright at a 1200 by 630 viewport, device scale 1, and screenshots to `public/og.png`. The script runs once by hand. The PNG is committed. It is not a build step.
+Production: `scripts/og/og.html` holds the template with the same tokens and the self-hosted Inter, and is committed as the layout source of truth. The screenshot runs by hand through the Playwright MCP at a 1200 by 630 viewport, device scale 1, to `public/og.png`. Playwright is not a dependency of this repo and section 8 forbids `.mcp.json`, so no bundled script drives the browser. The PNG is committed. It is not a build step.
 
 After every change to the image, open the Pages URL in the LinkedIn Post Inspector to refresh the LinkedIn cache.
 
-### 9.6 Favicons
+### 9.6 Icons
+
+Decided on 2026-09-04: no face on the icons. A recognisable portrait in a 16 px browser tab is wrong, and the 2 px pixel filter destroys a face at that size. All three files carry one mark, an `EV` monogram: `accent` letters on a `bg` square, Inter weight 700, letters about 60 percent of the square, corner radius 20 percent. The `accent` dot from the first draft is dropped. At a 16 px rendered tab two letters give about 6 px per glyph and look soft. Emil accepts that.
 
 Three files in `public/`:
 
-- `favicon.ico`, 48 by 48 px: the Center Pose behind the pixel filter, cropped to the face. Google prefers a multiple of 48 px.
-- `icon.svg`: a `bg` square with the `accent` dot, radius 20 percent.
-- `apple-touch-icon.png`, 180 by 180 px: the same image as the ICO.
+- `icon.svg`: the monogram as vector. Chrome and Firefox prefer it.
+- `favicon.ico`, 48 by 48 px: the same monogram. Google prefers a multiple of 48 px.
+- `apple-touch-icon.png`, 180 by 180 px: the same monogram.
 
-The build effort makes the two raster files from `og.html` with the same Playwright script, at a 48 px and a 180 px clip.
+Production: the two raster files are captured from a monogram template through the Playwright MCP, at a 48 px and a 180 px clip. `favicon.ico` is then a hand-rolled PNG-in-ICO: a 22 byte header around the captured 48 px PNG. The ICO format has allowed a raw PNG payload since Vista and every current browser reads it, so no image dependency such as `sharp` or `png-to-ico` enters the repo. A small `scripts/og.mjs` does the header work and the file placement.
 
 ### 9.7 robots.txt and sitemap.xml
 
@@ -427,7 +381,6 @@ Sitemap: https://<project>.pages.dev/sitemap.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://<project>.pages.dev/</loc></url>
-  <url><loc>https://<project>.pages.dev/build-log/</loc></url>
 </urlset>
 ```
 
@@ -457,16 +410,16 @@ The domain property needs DNS. Emil does not control DNS for `pages.dev`, so the
 1. Add the URL-prefix property `https://<project>.pages.dev/` in Search Console.
 2. Choose the HTML file method. Put the file in `public/`. Push. Confirm on the live URL. Then click Verify.
 3. Submit `https://<project>.pages.dev/sitemap.xml` in the Sitemaps report.
-4. Run URL Inspection on both pages and request indexing.
+4. Run URL Inspection on the home page and request indexing.
 5. In Bing Webmaster Tools, import the site from Search Console.
 
 The verification file stays in the repo.
 
 ### 9.10 Headings
 
-- One `<h1>` per page. Home: the headline. Build Log: the label `Build Log`.
-- Section labels in the rail are `<h2>`: Working Method, Selected Work, Build Log. The subline is a `<p>`.
-- Principle titles and work entry titles are `<h3>`. On the Build Log page each day date is `<h2>`.
+- One `<h1>` on the page: the headline.
+- Section labels in the rail are `<h2>`: Working Method, Selected Work, Activity. The subline is a `<p>`, where the section has one.
+- Principle titles and work entry titles are `<h3>`.
 - The name in the nav and the footer is not a heading. The Now strip labels are not headings.
 - No skipped levels. Lighthouse `heading-order` passes.
 
@@ -475,7 +428,7 @@ The verification file stays in the repo.
 - Cursor Avatar, Center image: `alt="Pixelated portrait of Emil Vladinov"`. Section 6.2 uses the same value. The other eight images keep `alt=""`. The frame keeps `aria-label="Emil Vladinov"`.
 - OG image: the `og:image:alt` value in 9.3. Under 420 characters, the X limit.
 - Footer GitHub and LinkedIn links carry `rel="me"`. GitHub links back with `rel="nofollow me"`.
-- Language: `<html lang="en">` on both pages. No `hreflang`. The site has one language.
+- Language: `<html lang="en">`. No `hreflang`. The site has one language.
 
 ### 9.12 Local signals for a person
 
@@ -490,12 +443,12 @@ No `geo.*` meta tags. Google ignores them.
 
 ### 9.13 Checklist for the build effort
 
-1. Replace `<project>` in the five places from 9.1. `grep -r "<project>"` finds nothing.
-2. Both heads match 9.3. The Build Log head has its own title, description, and canonical.
+1. Replace `<project>` in the four places from 9.1. `grep -r "<project>"` finds nothing.
+2. The head matches 9.3.
 3. The JSON-LD from 9.4 passes the Rich Results Test and the Schema Markup Validator with no error.
 4. `og.png` is 1200 by 630. The LinkedIn Post Inspector and the X Card Validator show the image, title, and description.
 5. `favicon.ico`, `icon.svg`, `apple-touch-icon.png`, `robots.txt`, `sitemap.xml`, and `_headers` answer 200 on the Pages URL.
-6. `curl -I https://<project>.pages.dev/build-log` answers 307 to `/build-log/`. Every internal link uses the slash form.
+6. `curl -I https://<project>.pages.dev/build-log/` answers 404. The route is gone and gets no redirect.
 7. Lighthouse on the Pages URL: SEO 100, `heading-order` passes, LCP under 2.5 s on mobile, CLS under 0.1.
 8. Search Console shows the property as verified and the sitemap as read.
 9. No analytics, no third-party script, no third-party font request.
@@ -512,24 +465,25 @@ The three values live once in `src/site.ts` and feed the footer, the JSON-LD `sa
 
 No contact form. The nav Contact link scrolls to the footer.
 
-## 11. Activity grids and counters
+## 11. Activity
 
 Source: research at `.scratch/portfolio-spec/research/activity-data.md`. Emil's approach, verified: no backend. A scheduled job on Emil's Windows machine pulls the numbers from both GitHub accounts and from the local Claude Code history, commits one JSON file to `main`, and Cloudflare Pages deploys.
 
 ### 11.1 What the Reader sees
 
-The Activity block sits under the Build Log teaser link, inside the Build Log section.
+Activity is its own section on the home page, `id="activity"`, in the slot between Selected Work and Contact. Label `Activity` in the rail, no subline.
 
-- Grid 1, **Commits**: a GitHub-style contribution grid of commits per day across both accounts, merged. Views: 7, 30, and 365 days, switched by three text buttons. Hover or focus on a cell shows the date and the count.
-- Grid 2, **Claude Code sessions**: the same grid for sessions per day. Label: `Sessions where I typed a prompt`. A streak line: `Current streak: N days`.
+- One grid, **Commits**: a GitHub-style contribution grid of commits per day across both accounts, merged. Views: 7, 30, and 365 days, switched by three text buttons. Hover or focus on a cell shows the date and the count.
+- No second grid. Decided on 2026-09-04: a second grid for Claude Code sessions doubles the visual weight of a supporting section and invites a comparison of a verifiable number against a self-reported one. The session numbers live in the counter row instead.
 - Counter row, mono, muted labels: `Commits`, `Pull requests merged`, `Lines changed on main` (added and removed), `Issues I opened, now closed`, `Repositories`, `Claude Code sessions`, `Active days`. The row caption shows the `since` date once.
+- The two Claude Code counters carry a `muted` label that marks them as self-reported, plus one mono source line under the row. The GitHub counters carry no such mark: anyone can check them against the public profile. This is the tone rule from section 1 applied.
 - Stamp under the block: `Updated <date>`. After three days with no update: `Last update <date>. The job runs on my machine when it is on.`
 - No per-account split, no login names, no repository names. The Inact figures in Selected Work stay Testimony. Private repository work appears only inside the merged counts.
 - Do not show GitHub's contribution calendar total. A live probe showed it drops private commits.
 
 Grid cells: 11 px squares, 3 px gap, five steps of the accent from `accent-soft` to `accent`. Empty days use `line`. The 365 view scrolls horizontally under 760 px.
 
-Reduced motion: no cell animation. Otherwise the grids fade in as one block with the standard reveal.
+Reduced motion: no cell animation. Otherwise the block fades in as one with the standard reveal.
 
 ### 11.2 Data file
 
@@ -577,10 +531,9 @@ Nothing secret enters the repo. The tokens stay in `gh auth` on Emil's machine.
 
 ## 12. Definition of done for the build
 
-- Both pages render with the final copy, tokens, and motion from this spec.
+- The page renders with the final copy, tokens, and motion from this spec.
 - Cursor Avatar tracks the pointer on desktop, drifts on touch, and stays static under reduced motion.
-- Build Log renders from git history on Cloudflare Pages with `source=git`, and no `activity:` commit appears in it.
 - The activity job ran twice from Task Scheduler, the JSON changed, and the site shows the new stamp.
 - Lighthouse on the Pages URL: no accessibility failure, no console error.
-- The Playwright check loop passes on both viewports for both pages.
+- The Playwright check loop passes on both viewports.
 - The site is live on the `*.pages.dev` URL and the URL is on the map.

@@ -24,6 +24,6 @@ _Avoid_: Methodology, process page, case studies
 A claim about private work that the Reader cannot verify by link, such as "shipped to production, passed senior review". The site states Testimony plainly and never dresses it up as proof.
 _Avoid_: Proof, evidence
 
-**Build Log**:
-The public record of how this site was built with agents. The one artifact the Reader can verify.
-_Avoid_: Changelog, devlog, blog
+**Activity**:
+The section that shows how much Emil builds: a commits grid and a counter row, from GitHub and from Claude Code. The GitHub numbers are the artifact the Reader can verify. The Claude Code numbers are Testimony and carry a mark.
+_Avoid_: Build Log, changelog, devlog, blog, stats
