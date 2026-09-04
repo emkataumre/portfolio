@@ -17,7 +17,7 @@ const entries = [
   },
   {
     title: 'This site.',
-    body: 'Planned and built with the same method, in public. Every decision is in the Build Log.',
+    body: 'Planned and built with the same method, in public. Every decision is in the public repo.',
     scale: 'Vite, React, Framer Motion',
     status: 'Public repo',
   },
