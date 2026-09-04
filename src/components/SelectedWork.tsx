@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { motion } from 'motion/react'
 import Reveal from './Reveal'
 import Rule from './Rule'
 
@@ -27,7 +27,12 @@ function SelectedWork() {
   return (
     <div>
       {entries.map(({ title, body, scale, status }, index) => (
-        <Fragment key={title}>
+        <motion.div
+          key={title}
+          initial="hidden"
+          whileInView="shown"
+          viewport={{ once: true, amount: 0.4 }}
+        >
           <Rule drawIndex={index} />
           <Reveal className="grid gap-6 py-[22px] min-[760px]:grid-cols-[1fr_auto]">
             <div>
@@ -39,9 +44,9 @@ function SelectedWork() {
               <p className="mt-0.5 text-muted">{status}</p>
             </div>
           </Reveal>
-        </Fragment>
+          {index === entries.length - 1 && <Rule drawIndex={entries.length} />}
+        </motion.div>
       ))}
-      <Rule drawIndex={entries.length} />
     </div>
   )
 }

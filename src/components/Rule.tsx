@@ -2,7 +2,10 @@ import { motion, useReducedMotion } from 'motion/react'
 import { EASE } from './ease'
 
 type RuleProps = {
-  /** Draw the rule from the left when it comes into view, 80 ms later per index. Absent: static. */
+  /**
+   * Draw the rule from the left, 80 ms later per index, when the nearest motion parent
+   * goes from the "hidden" to the "shown" variant. Absent: static.
+   */
   drawIndex?: number
 }
 
@@ -16,9 +19,7 @@ function Rule({ drawIndex }: RuleProps) {
     <motion.div
       aria-hidden="true"
       className="h-px origin-left bg-line"
-      initial={{ scaleX: 0 }}
-      whileInView={{ scaleX: 1 }}
-      viewport={{ once: true, amount: 0.4 }}
+      variants={{ hidden: { scaleX: 0 }, shown: { scaleX: 1 } }}
       transition={{ duration: 0.7, ease: EASE, delay: 0.08 * drawIndex }}
     />
   )
