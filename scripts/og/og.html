@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Open Graph card</title>
+    <!--
+      Layout source of truth for public/og.png, 1200 by 630 px.
+      Capture by hand with the Playwright MCP: serve the repo with `npm run dev`,
+      open /scripts/og/og.html, resize to 1200 by 630 at device scale 1, then
+      screenshot to .scratch/shots/og.png. Place the file with `node scripts/og.mjs`.
+      Tokens copy src/index.css. The pixel filter copies drawPixelFilter in
+      src/components/pixelOverlay.ts.
+    -->
+    <style>
+      @font-face {
+        font-family: "Inter";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: block;
+        src: url(/fonts/InterVariable.woff2) format("woff2");
+      }
+
+      :root {
+        --color-bg: #fafaf9;
+        --color-text: #18181b;
+        --color-muted: #6b6b70;
+        --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+        --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .card {
+        box-sizing: border-box;
+        width: 1200px;
+        height: 630px;
+        padding: 40px 80px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 64px;
+        background: var(--color-bg);
+        font-family: var(--font-sans);
+      }
+
+      .headline {
+        /* Narrow enough to wrap the headline onto three lines. */
+        width: 420px;
+        margin: 0;
+        font-size: 64px;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: var(--color-text);
+      }
+
+      .byline {
+        margin: 32px 0 0;
+        font-family: var(--font-mono);
+        font-size: 22px;
+        line-height: 1.4;
+        color: var(--color-muted);
+      }
+
+      .pose {
+        flex: none;
+        width: 400px;
+        height: 400px;
+        border-radius: 40px;
+        display: block;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div>
+        <h1 class="headline">Real software, built with AI agents.</h1>
+        <p class="byline">Emil Vladinov &#183; Software engineer in Copenhagen</p>
+      </div>
+      <canvas class="pose" id="pose" width="200" height="200"></canvas>
+    </div>
+    <script>
+      // Full-colour pixel filter, 2 px cells at the frame size. Always on.
+      const FILTER_CELL_PX = 2;
+      const FLICKER_OFFSET_PX = 3;
+      const POSE_WIDTH_PX = 400;
+
+      function drawPixelFilter(canvas, image, widthPx) {
+        const cells = Math.round(widthPx / FILTER_CELL_PX);
+        canvas.width = cells;
+        canvas.height = cells;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        const sourceSize =
+          Math.min(image.naturalWidth, image.naturalHeight) - FLICKER_OFFSET_PX;
+        context.imageSmoothingEnabled = false;
+        context.drawImage(image, 0, 0, sourceSize, sourceSize, 0, 0, cells, cells);
+      }
+
+      const image = new Image();
+      image.src = "/avatar/pose-center.webp";
+      Promise.all([image.decode(), document.fonts.ready]).then(() => {
+        drawPixelFilter(document.getElementById("pose"), image, POSE_WIDTH_PX);
+        document.documentElement.dataset.ready = "true";
+      });
+    </script>
+  </body>
+</html>

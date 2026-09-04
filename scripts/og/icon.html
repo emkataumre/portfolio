@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Monogram</title>
+    <!--
+      Capture template for the raster icons. public/icon.svg is the mark itself,
+      so all three icon files carry the same monogram.
+      Capture by hand with the Playwright MCP: serve the repo with `npm run dev`,
+      open /scripts/og/icon.html, resize to 48 by 48 and screenshot to
+      .scratch/shots/icon-48.png, then resize to 180 by 180 and screenshot to
+      .scratch/shots/icon-180.png. Place the files with `node scripts/og.mjs`.
+    -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      img {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="/icon.svg" alt="EV" />
+  </body>
+</html>
