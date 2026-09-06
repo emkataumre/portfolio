@@ -3,11 +3,11 @@
 // Claude Code prompt history at ~/.claude/history.jsonl. Writes
 // src/activity/activity.json. Only integers leave the machine: no login, no
 // repository name, no project path, no prompt text, no session id, no token.
-// Unlike the old Build Log generator, this script fails loud. Any GitHub call
-// that does not recover after the retries stops the run: it prints one line,
-// exits non-zero, and writes no file. The output is a committed ledger that a
-// scheduled job deploys, so a partial walk would publish a number that is too
-// low. The previous file stays in place instead.
+// The script fails loud. Any GitHub call that does not recover after the
+// retries stops the run: it prints one line, exits non-zero, and writes no
+// file. The output is a committed ledger that a scheduled job deploys, so a
+// partial walk would publish a number that is too low. The previous file stays
+// in place instead.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -20,7 +20,7 @@ const WINDOW_DAYS = 365;
 const BOT_PREFIX = 'activity: ';
 const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000];
 const NETWORK_FAILURE =
-  /timeout|unexpected EOF|TLS handshake|i\/o timeout|dial tcp|connection reset|EOF|ECONNRESET|EAI_AGAIN|no such host|502|503|504|Bad Gateway|Service Unavailable|Gateway Time-?out/i;
+  /\b(?:HTTP 5\d{2}|EOF|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND)\b|timeout|TLS handshake|dial tcp|connection reset|no such host|Bad Gateway|Service Unavailable|Gateway Time-?out/i;
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputPath = resolve(rootDir, 'src/activity/activity.json');
@@ -101,27 +101,33 @@ export function parseSessionHistory(text) {
   return byDay;
 }
 
-// Builds the session counts for the window. Days that the local history no
-// longer covers keep the value from the previous file, because the local
-// history is the only copy of that data and it is swept after 30 days.
-export function mergeSessions(days, byDay, previous) {
-  const firstLocalDay = [...byDay.keys()].sort()[0];
-  const previousByDay = new Map();
-  if (previous?.days?.from && Array.isArray(previous.sessions)) {
-    for (const [index, day] of windowDays(previous.days.to).entries()) {
-      previousByDay.set(day, previous.sessions[index] ?? 0);
-    }
+// Maps a previous file back to its day keys. Returns an empty map when the
+// file does not carry the fields this needs.
+function previousByDay(previous, values) {
+  const byDay = new Map();
+  if (typeof previous?.days?.to !== 'string' || !Array.isArray(values)) return byDay;
+  for (const [index, day] of windowDays(previous.days.to).entries()) {
+    const count = values[index];
+    if (Number.isInteger(count)) byDay.set(day, count);
   }
-  return days.map((day) => {
-    if (firstLocalDay !== undefined && day >= firstLocalDay) return byDay.get(day)?.size ?? 0;
-    return previousByDay.get(day) ?? 0;
-  });
+  return byDay;
+}
+
+// Builds the session counts for the window. Each day takes the larger of the
+// local count and the previous count. The local Claude Code history is the
+// only copy of that data and it is swept after 30 days, so a day the sweep
+// already emptied must never overwrite the value the ledger holds. A day count
+// only ever grows while the day runs, so the larger value is the true one.
+export function mergeSessions(days, byDay, previous) {
+  const carried = previousByDay(previous, previous?.sessions);
+  return days.map((day) => Math.max(byDay.get(day)?.size ?? 0, carried.get(day) ?? 0));
 }
 
 // Returns the run of consecutive active days that ends today or yesterday, and
 // the last active day of the window. A gap of two days or more gives 0 days.
+// A window with no active day at all gives a null last day.
 export function computeStreak(days, sessions) {
-  let last = days[0];
+  let last = null;
   for (const [index, day] of days.entries()) {
     if (sessions[index] > 0) last = day;
   }
@@ -132,11 +138,27 @@ export function computeStreak(days, sessions) {
   return { days: count, endsOn: last };
 }
 
-// Compares two activity objects, ignoring the generatedAt stamp.
+// Reduces an activity object to the measurements it carries: the per day
+// counts under their own day keys, the streak, and the counters. The stamp and
+// the window edges roll with the calendar on their own, so they stay out.
+export function measurements(activity) {
+  if (typeof activity?.days?.to !== 'string') return null;
+  const days = windowDays(activity.days.to);
+  const keyed = (values) =>
+    days.map((day, index) => [day, values?.[index] ?? 0]).filter(([, count]) => count > 0);
+  const { since: _since, ...counters } = activity.counters ?? {};
+  return JSON.stringify({
+    commits: keyed(activity.commits),
+    sessions: keyed(activity.sessions),
+    streak: activity.streak ?? null,
+    counters,
+  });
+}
+
+// Reports whether two activity objects hold the same measurements.
 export function sameNumbers(a, b) {
-  if (!a || !b) return false;
-  const strip = ({ generatedAt: _generatedAt, ...rest }) => JSON.stringify(rest);
-  return strip(a) === strip(b);
+  const left = measurements(a);
+  return left !== null && left === measurements(b);
 }
 
 function sleep(ms) {

@@ -25,5 +25,5 @@ A claim about private work that the Reader cannot verify by link, such as "shipp
 _Avoid_: Proof, evidence
 
 **Activity**:
-The section that shows how much Emil builds: a commits grid and a counter row, from GitHub and from Claude Code. The GitHub numbers are the artifact the Reader can verify. The Claude Code numbers are Testimony and carry a mark.
+The section that shows how much Emil builds: a commits grid and a counter row, from GitHub and from Claude Code. GitHub collects the GitHub numbers, so they carry no mark. The Claude Code numbers come off Emil's own machine. They are Testimony and carry a mark.
 _Avoid_: Build Log, changelog, devlog, blog, stats
