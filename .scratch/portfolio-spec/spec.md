@@ -475,8 +475,8 @@ Activity is its own section on the home page, `id="activity"`, in the slot betwe
 
 - One grid, **Commits**: a GitHub-style contribution grid of commits per day across both accounts, merged. Views: 7, 30, and 365 days, switched by three text buttons. Hover or focus on a cell shows the date and the count.
 - No second grid. Decided on 2026-09-04: a second grid for Claude Code sessions doubles the visual weight of a supporting section and invites a comparison of a verifiable number against a self-reported one. The session numbers live in the counter row instead.
-- Counter row, mono, muted labels: `Commits`, `Pull requests merged`, `Lines changed on main` (added and removed), `Issues I opened, now closed`, `Repositories`, `Claude Code sessions`, `Active days`. The row caption shows the `since` date once.
-- The two Claude Code counters carry a `muted` label that marks them as self-reported, plus one mono source line under the row. The GitHub counters carry no such mark: anyone can check them against the public profile. This is the tone rule from section 1 applied.
+- Counter row, mono, muted labels: `Commits`, `Pull requests merged`, `Lines changed on main` (added and removed), `Issues I opened, now closed`, `Repositories`, `Claude Code sessions`, `Active days`. Every counter covers the last 365 days. The row caption shows the `since` date once, and says that private repositories are part of the numbers.
+- The two Claude Code counters carry a `muted` label that marks them as self-reported, plus one mono source line under the row. The GitHub counters carry no such mark. The split is not public work against private work, because the counters include private repositories. The split is machine-collected against read off my laptop. GitHub keeps the GitHub numbers, and I cannot edit them. The Claude Code numbers come from a file on my own machine, and I can edit that file. This is the tone rule from section 1 applied.
 - Stamp under the block: `Updated <date>`. After three days with no update: `Last update <date>. The job runs on my machine when it is on.`
 - No per-account split, no login names, no repository names. The Inact figures in Selected Work stay Testimony. Private repository work appears only inside the merged counts.
 - Do not show GitHub's contribution calendar total. A live probe showed it drops private commits.
@@ -512,10 +512,10 @@ The 7 and 30 day views are slices of the same arrays.
 
 `scripts/activity.mjs`, Node, no Claude Code in the loop.
 
-1. Read the previous `activity.json`. Merge into it. Never rebuild the year from scratch, because Claude Code transcripts are swept after 30 days.
-2. For each GitHub account: `GH_TOKEN=$(gh auth token --user <login>)`. GraphQL `repositoriesContributedTo(contributionTypes: [COMMIT])`, then per repository `defaultBranchRef.target.history(author: {id}, since:)`. Group by `authoredDate` in Europe/Copenhagen. Sum `additions` and `deletions`. Drop commits whose subject starts with `activity: `. Search `author:<login> is:pr is:merged` and `author:<login> is:issue is:closed` for the two counters. Cost: about 1 point per query against 5,000 per hour.
+1. Read the previous `activity.json`. Rebuild the `commits` array and the GitHub counters from GitHub on every run, because GitHub keeps the full year and a rebuild repairs a bad earlier run. Merge the `sessions` array forward: days that the local Claude Code history no longer covers keep the value from the previous file, because that history is the only copy and Claude Code sweeps it after 30 days.
+2. For each GitHub account: `GH_TOKEN=$(gh auth token --user <login>)`. GraphQL `repositoriesContributedTo(contributionTypes: [COMMIT])`, then per repository `defaultBranchRef.target.history(author: {id}, since:)`. Group by `authoredDate` in Europe/Copenhagen. Sum `additions` and `deletions`. Drop commits whose subject starts with `activity: `. Search `author:<login> is:pr is:merged merged:>=<since>` and `author:<login> is:issue is:closed closed:>=<since>` for the two counters. The date qualifiers hold every counter to the same 365 day window. Do not add `is:public`: private results belong in the numbers. `Repositories` counts the distinct repositories with at least one commit inside the window, across both accounts, by repository id. Cost: about 1 point per query against 5,000 per hour.
 3. Claude Code sessions: read `~/.claude/history.jsonl`. Count distinct session ids per day that have a typed prompt. The streak is the run of consecutive active days that ends today or yesterday. Only integers leave the machine.
-4. Write the JSON. If it changed, commit as author `activity-bot` with subject `activity: <date>` and push with the personal account token.
+4. Write the JSON. Stamp `generatedAt` only when a number moved, so a run that finds nothing new leaves the file byte for byte the same. If it changed, commit as author `activity-bot` with subject `activity: <date>` and push with the personal account token.
 5. The job runs in its own clone at `%LOCALAPPDATA%\portfolio-activity\` and does `git pull --rebase` first.
 
 Schedule: Windows Task Scheduler, registered through PowerShell with `New-ScheduledTaskSettingsSet -StartWhenAvailable`, a 10 minute time limit, twice a day, run with a stored password so `gh` can read Windows Credential Manager. The machine must be on. The stamp in 11.1 keeps that honest.
@@ -526,7 +526,7 @@ Nothing secret enters the repo. The tokens stay in `gh auth` on Emil's machine.
 
 ### 11.4 Open points for the build
 
-- Whether search returns private organisation issues and pull requests for the work token. Check on the first run and drop the counter if it is wrong.
+- Answered on 2026-09-06. Search returns private organisation issues and pull requests for both tokens, and the private commit walk returns `additions` and `deletions` with no SAML block. The counters keep the private results. About two thirds of the merged pull request count is not visible on the public profile, so the counter caption says that private repositories are part of the numbers.
 - Whether to show the lines counter at all. It includes lock files and generated code. The label says so.
 
 ## 12. Definition of done for the build
