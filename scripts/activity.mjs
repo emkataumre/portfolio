@@ -9,7 +9,7 @@
 // partial walk would publish a number that is too low. The previous file stays
 // in place instead.
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -19,6 +19,8 @@ const TIME_ZONE = 'Europe/Copenhagen';
 const WINDOW_DAYS = 365;
 const BOT_PREFIX = 'activity: ';
 const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000];
+// The largest instant that a Date can hold, in milliseconds.
+const MAX_TIMESTAMP_MS = 8.64e15;
 const NETWORK_FAILURE =
   /\b(?:HTTP 5\d{2}|EOF|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND)\b|timeout|TLS handshake|dial tcp|connection reset|no such host|Bad Gateway|Service Unavailable|Gateway Time-?out/i;
 
@@ -93,7 +95,8 @@ export function parseSessionHistory(text) {
       continue;
     }
     if (typeof record?.display !== 'string' || record.display.trim() === '') continue;
-    if (!Number.isFinite(record.timestamp) || typeof record.sessionId !== 'string') continue;
+    if (typeof record.sessionId !== 'string') continue;
+    if (!Number.isFinite(record.timestamp) || Math.abs(record.timestamp) > MAX_TIMESTAMP_MS) continue;
     const day = dayOf(new Date(record.timestamp));
     if (!byDay.has(day)) byDay.set(day, new Set());
     byDay.get(day).add(record.sessionId);
@@ -101,19 +104,41 @@ export function parseSessionHistory(text) {
   return byDay;
 }
 
-// Maps a previous file back to its day keys. A file that holds counts but
-// names no last day is a fault, not an empty file: the counts are real and no
-// day key can carry them. The run stops rather than drop them.
+// Rebuilds the day keys of the previous file. The file must agree with itself
+// as well, because a last day that does not match the rest of the file would
+// carry every count to the wrong day.
+function previousWindow(previous) {
+  const to = previous?.days?.to;
+  if (typeof to !== 'string' || Number.isNaN(Date.parse(`${to}T12:00:00Z`))) {
+    throw new Error('the previous activity.json names no valid days.to, so no day can carry forward');
+  }
+  const days = windowDays(to);
+  for (const [name, value] of [
+    ['days.from', previous?.days?.from],
+    ['counters.since', previous?.counters?.since],
+  ]) {
+    if (value !== undefined && value !== days[0]) {
+      throw new Error(
+        `the previous activity.json has ${name} outside the window that days.to names, so its day keys are not trustworthy`,
+      );
+    }
+  }
+  return days;
+}
+
+// Maps a previous file back to its day keys. Counts that the file holds but
+// that no day key can carry are a fault, not an empty file. The run stops
+// rather than drop them, because the sessions are the only copy of that data.
 function previousByDay(previous, values) {
   const byDay = new Map();
   if (values === undefined || values === null) return byDay;
-  if (!Array.isArray(values) || typeof previous?.days?.to !== 'string') {
-    throw new Error('the previous activity.json holds sessions but no days.to, so no day can carry forward');
+  const days = previousWindow(previous);
+  if (!Array.isArray(values) || values.length !== days.length || !values.every(Number.isInteger)) {
+    throw new Error(
+      `the previous activity.json holds sessions that are not ${WINDOW_DAYS} whole day counts, so no day can carry forward`,
+    );
   }
-  for (const [index, day] of windowDays(previous.days.to).entries()) {
-    const count = values[index];
-    if (Number.isInteger(count)) byDay.set(day, count);
-  }
+  for (const [index, day] of days.entries()) byDay.set(day, values[index]);
   return byDay;
 }
 
@@ -359,8 +384,13 @@ export function main() {
     console.log(`activity: unchanged since ${previous.generatedAt}`);
     return;
   }
+  // Write a temporary file and rename it into place. A run that dies in the
+  // middle of the write then leaves the previous file whole, and no later run
+  // meets a file that does not parse.
   mkdirSync(dirname(outputPath), { recursive: true });
-  writeFileSync(outputPath, JSON.stringify(activity, null, 2) + '\n');
+  const temporaryPath = `${outputPath}.new`;
+  writeFileSync(temporaryPath, JSON.stringify(activity, null, 2) + '\n');
+  renameSync(temporaryPath, outputPath);
   console.log(
     `activity: ${from} to ${to} commits=${activity.counters.commits} sessions=${activity.counters.claudeSessions} repositories=${activity.counters.repositories}`,
   );
