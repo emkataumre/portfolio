@@ -93,7 +93,7 @@ export function parseSessionHistory(text) {
       continue;
     }
     if (typeof record?.display !== 'string' || record.display.trim() === '') continue;
-    if (typeof record.timestamp !== 'number' || typeof record.sessionId !== 'string') continue;
+    if (!Number.isFinite(record.timestamp) || typeof record.sessionId !== 'string') continue;
     const day = dayOf(new Date(record.timestamp));
     if (!byDay.has(day)) byDay.set(day, new Set());
     byDay.get(day).add(record.sessionId);
@@ -101,11 +101,15 @@ export function parseSessionHistory(text) {
   return byDay;
 }
 
-// Maps a previous file back to its day keys. Returns an empty map when the
-// file does not carry the fields this needs.
+// Maps a previous file back to its day keys. A file that holds counts but
+// names no last day is a fault, not an empty file: the counts are real and no
+// day key can carry them. The run stops rather than drop them.
 function previousByDay(previous, values) {
   const byDay = new Map();
-  if (typeof previous?.days?.to !== 'string' || !Array.isArray(values)) return byDay;
+  if (values === undefined || values === null) return byDay;
+  if (!Array.isArray(values) || typeof previous?.days?.to !== 'string') {
+    throw new Error('the previous activity.json holds sessions but no days.to, so no day can carry forward');
+  }
   for (const [index, day] of windowDays(previous.days.to).entries()) {
     const count = values[index];
     if (Number.isInteger(count)) byDay.set(day, count);
@@ -151,7 +155,7 @@ export function measurements(activity) {
     commits: keyed(activity.commits),
     sessions: keyed(activity.sessions),
     streak: activity.streak ?? null,
-    counters,
+    counters: Object.entries(counters).sort(([a], [b]) => (a < b ? -1 : 1)),
   });
 }
 
@@ -308,12 +312,15 @@ function collectGitHub(days) {
   };
 }
 
+// Reads the previous file. A file that exists but does not parse stops the
+// run: the sessions it holds are the only copy of that data, so the script
+// must never write a new file over a file it could not read.
 function readPrevious() {
   if (!existsSync(outputPath)) return null;
   try {
     return JSON.parse(readFileSync(outputPath, 'utf8'));
   } catch {
-    return null;
+    throw new Error('the previous activity.json does not parse, so the session history cannot carry forward');
   }
 }
 
