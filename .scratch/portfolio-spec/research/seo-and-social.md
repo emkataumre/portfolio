@@ -6,13 +6,13 @@ Sources: Google Search Central, schema.org, ogp.me, the X card reference (Waybac
 
 ## 1. Question
 
-What does the build put in the head, in the static files, and in the structured data so that an engineering lead or recruiter finds Emil Vladinov for "software engineer Copenhagen" and for "agentic coding" or "Claude Code" queries, on a static Vite site at `https://<project>.pages.dev/` with one extra page at `/build-log/`? Which local signals help a person, and where can the niche terms go without a change to the final copy?
+What does the build put in the head, in the static files, and in the structured data so that an engineering lead or recruiter finds Emil Vladinov for "software engineer Copenhagen" and for "agentic coding" or "Claude Code" queries, on a static Vite site at `https://portfolio-2mj.pages.dev/` with one extra page at `/build-log/`? Which local signals help a person, and where can the niche terms go without a change to the final copy?
 
 ## 2. Summary
 
 - Google renders JavaScript. Static head tags plus React-rendered copy are enough for two pages. No prerender step. Social scrapers read only the static HTML, so every share tag sits in the HTML entry, not in React.
 - The canonical for the second page is `/build-log/` with a slash. Cloudflare Pages answers `/build-log` with a 307 to the slash form.
-- Production `<project>.pages.dev` is indexable. Only preview deployments get `X-Robots-Tag: noindex`. `pages.dev` is on the Public Suffix List, so Google treats the site as its own host. Search Console needs a URL-prefix property with HTML file verification. A domain property is not possible.
+- Production `portfolio-2mj.pages.dev` is indexable. Only preview deployments get `X-Robots-Tag: noindex`. `pages.dev` is on the Public Suffix List, so Google treats the site as its own host. Search Console needs a URL-prefix property with HTML file verification. A domain property is not possible.
 - A `*.pages.dev` host does not rank worse by any Google rule. A later custom domain is a full site move: Bulk Redirect on Cloudflare plus Change of Address in Search Console. One URL constant makes that move cheap.
 - Google Business Profile is not for an employed engineer. For a person, the local signals are the city in the title, description, and page text, a `PostalAddress` in Person JSON-LD, and the same city on LinkedIn and GitHub.
 - The shared vocabulary in Anthropic docs, Copenhagen job posts, and practitioner writing is "agentic". Job posts name Claude Code and Cursor as tools. The copy already carries "AI agents", "agentic coding", and "agentic workflows". The metadata adds "Claude Code" in the descriptions.
@@ -58,7 +58,7 @@ What does the build put in the head, in the static files, and in the structured 
 - A domain property "Includes all subdomains" and needs DNS. A URL-prefix property "Includes only URLs with the specified prefix, including the protocol". https://support.google.com/webmasters/answer/34592
 - Sitemap submission: the Sitemaps report, or the robots.txt line. https://support.google.com/webmasters/answer/7451001
 - Bing Webmaster Tools imports sites and sitemaps from Search Console. https://blogs.bing.com/webmaster/september-2019/Import-sites-from-Search-Console-to-Bing-Webmaster-Tools
-- Cloudflare `CF_PAGES_URL` is the "url-of-current-deployment". On previews it is `<hash>.<project>.pages.dev`. It is not a canonical. https://developers.cloudflare.com/pages/configuration/build-configuration/
+- Cloudflare `CF_PAGES_URL` is the "url-of-current-deployment". On previews it is `<hash>.portfolio-2mj.pages.dev`. It is not a canonical. https://developers.cloudflare.com/pages/configuration/build-configuration/
 
 ### 3.6 Title, snippet, headings
 
@@ -121,7 +121,7 @@ What does the build put in the head, in the static files, and in the structured 
 ## 4. Recommendation
 
 1. Static head per HTML entry. React renders the body. No prerender.
-2. Canonicals `https://<project>.pages.dev/` and `https://<project>.pages.dev/build-log/`. Every internal link and the sitemap use the slash form.
+2. Canonicals `https://portfolio-2mj.pages.dev/` and `https://portfolio-2mj.pages.dev/build-log/`. Every internal link and the sitemap use the slash form.
 3. Home JSON-LD `@graph`: `WebSite`, `ProfilePage`, `Person` with `PostalAddress` Copenhagen, DK, `worksFor` Inact and Solution 8, `sameAs` GitHub and LinkedIn, `knowsAbout` limited to topics on the page. Build Log JSON-LD: `WebPage` with `isPartOf`.
 4. Home title keeps the headline and adds the name. Both descriptions carry "Copenhagen" and "Claude Code". No `meta keywords`.
 5. One 1200x630 PNG for Open Graph, with `og:image:width`, `og:image:height`, `og:image:alt`, and the full `twitter:` set.
