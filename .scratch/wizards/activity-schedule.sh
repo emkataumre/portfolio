@@ -247,7 +247,10 @@ if [[ -d "$CLONE_UNIX/.git" ]]; then
   git -C "$CLONE_UNIX" config --local --get user.name | sed 's/^/    user.name  = /'
   git -C "$CLONE_UNIX" config --local --get user.email | sed 's/^/    user.email = /'
   say ""
+  # git prints a drive letter path and CLONE_UNIX comes from cygpath, so the
+  # comparison needs both names in the same style.
   WORK_CLONE="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  [[ -n "$WORK_CLONE" ]] && WORK_CLONE="$(cygpath -u "$WORK_CLONE")"
   if [[ -n "$WORK_CLONE" && "$WORK_CLONE" != "$CLONE_UNIX" ]]; then
     say "Working clone identity, unchanged:"
     git -C "$WORK_CLONE" config --local --get user.email | sed 's/^/    user.email = /' || say "    none"
