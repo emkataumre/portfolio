@@ -78,6 +78,11 @@ trap {
     exit 1
 }
 
+# A scheduled run has no console. Without this, a git command that wants a
+# name and a password waits at an invisible prompt until the task time limit
+# kills it. With this, git fails at once and the wrapper logs the cause.
+$env:GIT_TERMINAL_PROMPT = '0'
+
 # The collector reads a token per account with `gh auth token --user <login>`.
 # `gh` returns the environment token and ignores --user when GH_TOKEN or
 # GITHUB_TOKEN is set. Both accounts would then resolve to one token, and the

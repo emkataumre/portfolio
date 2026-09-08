@@ -365,23 +365,32 @@ say ""
 say "Current global credential config:"
 git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
 say ""
+HELPER_SET=0
 if confirm "Run 'gh auth setup-git' and accept the global change?"; then
   "$GH" auth setup-git --hostname github.com
   say "Global credential config now:"
   git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
   say "${GREEN}OK${RESET} the credential helper is configured."
+  HELPER_SET=1
 else
   SKIPPED+=("run gh auth setup-git")
+  warn "The job cannot push without a credential helper."
 fi
 say ""
-if [[ -d "$CLONE_UNIX/.git" ]]; then
+
+# Test the push path only after the helper is in place. GIT_TERMINAL_PROMPT=0
+# makes git fail instead of asking for a name and a password. GitHub refuses
+# password authentication, so that prompt is a dead end.
+if [[ "$HELPER_SET" -eq 1 && -d "$CLONE_UNIX/.git" ]]; then
   say "Testing the push path without pushing anything:"
-  if git -C "$CLONE_UNIX" push --dry-run origin main 2>&1 | sed 's/^/    /'; then
+  if GIT_TERMINAL_PROMPT=0 git -C "$CLONE_UNIX" push --dry-run origin main 2>&1 | sed 's/^/    /'; then
     say "${GREEN}OK${RESET} the job clone can push to main."
   else
     warn "The dry run failed."
     warn "Correct the login before you register the task."
   fi
+elif [[ -d "$CLONE_UNIX/.git" ]]; then
+  note "The push test needs the credential helper, so the wizard skips it."
 fi
 pause
 
