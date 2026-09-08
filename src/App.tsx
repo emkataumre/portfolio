@@ -1,3 +1,4 @@
+import ActivityGrid from './components/ActivityGrid'
 import Hero from './components/Hero'
 import NowStrip from './components/NowStrip'
 import Page from './components/Page'
@@ -19,6 +20,9 @@ function App() {
         subline="Inact, 2026. A legacy Go and React monorepo, 415k lines."
       >
         <SelectedWork />
+      </Section>
+      <Section id="activity" label="Activity">
+        <ActivityGrid />
       </Section>
     </Page>
   )
