@@ -14,7 +14,7 @@ const STEPS = [
   { min: 7, color: mix(80) },
   { min: 4, color: mix(62) },
   { min: 3, color: mix(46) },
-  { min: 1, color: mix(30) },
+  { min: 1, color: 'var(--color-accent-soft)' },
 ]
 
 function cellColor(count: number) {
@@ -125,19 +125,19 @@ function ActivityGrid() {
         Use the arrow keys to move between days.
       </p>
 
-      <div className="mt-4 min-w-0 overflow-hidden">
+      <div className="mt-4 min-w-0 overflow-x-auto">
         <div
           role="group"
           aria-labelledby={titleId}
           aria-describedby={hintId}
           className={`grid [grid-auto-flow:column] ${
             isYear
-              ? 'w-full gap-[clamp(1px,0.25vw,3px)] [grid-template-columns:repeat(53,minmax(0,1fr))] grid-rows-[repeat(7,auto)]'
+              ? 'w-max gap-[3px] [grid-auto-columns:11px] grid-rows-[repeat(7,11px)]'
               : 'w-max gap-[3px] [grid-auto-columns:11px] grid-rows-[11px]'
           }`}
         >
           {Array.from({ length: pad }, (_, slot) => (
-            <div key={`pad-${slot}`} aria-hidden="true" className="aspect-square" />
+            <div key={`pad-${slot}`} aria-hidden="true" />
           ))}
           {indexes.map((index) => (
             <div
@@ -149,7 +149,7 @@ function ActivityGrid() {
               tabIndex={index === tabStop ? 0 : -1}
               role="img"
               aria-label={labelFor(index)}
-              className="aspect-square rounded-[2px] outline-offset-2"
+              className="size-[11px] rounded-[2px] outline-offset-2"
               style={{ backgroundColor: cellColor(activity.commits[index]) }}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered((current) => (current === index ? null : current))}
