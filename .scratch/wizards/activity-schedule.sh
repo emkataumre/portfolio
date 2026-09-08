@@ -365,9 +365,12 @@ say ""
 HELPER_SET=0
 if [[ -d "$CLONE_UNIX/.git" ]]; then
   GH_WIN="$(to_win "$GH")"
-  git -C "$CLONE_UNIX" config --local     "credential.https://github.com.helper" "!'"'"'$GH_WIN'"'"' auth git-credential"
+  # Single quotes inside double quotes stay literal, so the value holds one
+  # quoted path and git reads it as one argument.
+  HELPER_VALUE="!'$GH_WIN' auth git-credential"
+  git -C "$CLONE_UNIX" config --local "credential.https://github.com.helper" "$HELPER_VALUE"
   say "Helper in the job clone:"
-  git -C "$CLONE_UNIX" config --local --get-regexp '^credential' | sed 's/^/    /'     || say "    none"
+  git -C "$CLONE_UNIX" config --local --get-regexp '^credential' | sed 's/^/    /' || say "    none"
   HELPER_SET=1
   say "${GREEN}OK${RESET} the job clone has the credential helper."
 else
