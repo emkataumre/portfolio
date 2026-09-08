@@ -214,6 +214,18 @@ to_unix() {
   fi
 }
 
+# git runs the credential helper through sh, and sh cannot run a path that
+# holds backslashes. The mixed form works in sh and in Windows.
+to_mixed() {
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -m "$1"
+    return
+  fi
+  local w
+  w="$(to_win "$1")"
+  printf "%s\n" "${w//\\//}"
+}
+
 to_win() {
   if command -v cygpath >/dev/null 2>&1; then
     cygpath -w "$1"
@@ -364,10 +376,10 @@ say "clone at I:${BS}Personal${BS}portfolio keeps the git config it has now."
 say ""
 HELPER_SET=0
 if [[ -d "$CLONE_UNIX/.git" ]]; then
-  GH_WIN="$(to_win "$GH")"
+  GH_MIXED="$(to_mixed "$GH")"
   # Single quotes inside double quotes stay literal, so the value holds one
   # quoted path and git reads it as one argument.
-  HELPER_VALUE="!'$GH_WIN' auth git-credential"
+  HELPER_VALUE="!'$GH_MIXED' auth git-credential"
   git -C "$CLONE_UNIX" config --local "credential.https://github.com.helper" "$HELPER_VALUE"
   say "Helper in the job clone:"
   git -C "$CLONE_UNIX" config --local --get-regexp '^credential' | sed 's/^/    /' || say "    none"
@@ -444,9 +456,11 @@ try {
 }
 Get-ScheduledTask -TaskName 'portfolio-activity' | Format-List TaskName, State
 PS1_EOF
+TASK_REGISTERED=0
 if confirm "Register the task now?"; then
   if powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(to_win "$REGISTER_PS1")"; then
     say "${GREEN}OK${RESET} the task is registered."
+    TASK_REGISTERED=1
   else
     warn "The register script failed. The message above names the cause."
     SKIPPED+=("register the scheduled task $TASK_NAME")
@@ -464,7 +478,10 @@ say "This starts the task by hand and waits for it to stop."
 say "The first run collects every number again."
 say "Wait about two minutes."
 say ""
-if confirm "Start $TASK_NAME now?"; then
+if [[ "$TASK_REGISTERED" -eq 0 ]]; then
+  warn "The task is not registered, so the wizard skips the test run."
+  SKIPPED+=("start $TASK_NAME once by hand")
+elif confirm "Start $TASK_NAME now?"; then
   powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-ScheduledTask -TaskName '$TASK_NAME'; do { Start-Sleep -Seconds 5 } while ((Get-ScheduledTask -TaskName '$TASK_NAME').State -eq 'Running'); Get-ScheduledTaskInfo -TaskName '$TASK_NAME' | Format-List TaskName, LastRunTime, LastTaskResult" | sed 's/^/    /'
   say ""
   say "Last log line:"
