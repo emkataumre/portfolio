@@ -406,13 +406,15 @@ pause
 stage "Register the scheduled task"
 say "Task name:  $TASK_NAME"
 say "Runs:       12:00 and 17:00, local time, every day"
-say "Runs as:    your own Windows account, logged on or not, stored password"
+say "Runs as:    your own Windows account, while you are logged on"
 say "Time limit: 10 minutes. A measured run took 76 seconds."
 say "Action:     powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass"
 say "            -File $CLONE_WIN\\scripts\\activity-job.ps1"
 say ""
-note "A stored password is needed. Without it the task runs with no user"
-note "profile, and gh cannot read Windows Credential Manager."
+note "The task needs no password. It runs with your profile loaded, so gh"
+note "can read Windows Credential Manager."
+note "A run that falls while you are signed out starts at your next sign in,"
+note "because -StartWhenAvailable is set."
 note "-WakeToRun is not set, so the task never wakes a sleeping laptop."
 note "-AllowStartIfOnBatteries is set, or every run on battery power is skipped."
 say ""
@@ -436,21 +438,15 @@ $triggers = @(
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable `
     -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
-$user = "$env:USERDOMAIN\$env:USERNAME"
-Write-Host ""
-Write-Host "Type the Windows password for $user. Task Scheduler stores it."
-Write-Host "The password stays hidden, and this wizard writes it to no file."
-$secure = Read-Host 'Password' -AsSecureString
-$bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-try {
-    $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
-    Register-ScheduledTask -TaskName 'portfolio-activity' -Action $action -Trigger $triggers `
-        -Settings $settings -User $user -Password $password -RunLevel Limited -Force | Out-Null
-} finally {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
-    $password = $null
-    $secure = $null
-}
+# An Interactive principal needs no stored password. The task runs while the
+# user is logged on, with the profile loaded, so gh can read Windows
+# Credential Manager. A stored password does not work for an AzureAD account.
+# Task Scheduler cannot map an AzureAD name to a security id, so the principal
+# carries the security id of the current user.
+$sid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+$principal = New-ScheduledTaskPrincipal -UserId $sid -LogonType Interactive -RunLevel Limited
+Register-ScheduledTask -TaskName 'portfolio-activity' -Action $action -Trigger $triggers `
+    -Settings $settings -Principal $principal -Force | Out-Null
 Get-ScheduledTask -TaskName 'portfolio-activity' | Format-List TaskName, State
 PS1_EOF
 TASK_REGISTERED=0

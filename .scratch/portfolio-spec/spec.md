@@ -518,7 +518,7 @@ The 7 and 30 day views are slices of the same arrays.
 4. Write the JSON. Stamp `generatedAt` only when a number moved, so a run that finds nothing new leaves the file byte for byte the same. If it changed, commit as author `activity-bot` with subject `activity: <date>` and push with the personal account token.
 5. The job runs in its own clone at `%LOCALAPPDATA%\portfolio-activity\` and does `git fetch origin` and `git reset --hard origin/main` first, on every run. The clone holds no work that a human wrote, so a reset can lose nothing, and a rebase that stops on a conflict can keep the job stuck for weeks.
 
-Schedule: Windows Task Scheduler, registered through PowerShell with `New-ScheduledTaskSettingsSet -StartWhenAvailable`, a 10 minute time limit, twice a day, run with a stored password so `gh` can read Windows Credential Manager. The machine must be on. The stamp in 11.1 keeps that honest.
+Schedule: Windows Task Scheduler, registered through PowerShell with `New-ScheduledTaskSettingsSet -StartWhenAvailable`, a 10 minute time limit, twice a day, run with an interactive principal so `gh` can read Windows Credential Manager. A stored password does not work for an AzureAD account, so the task runs while Emil is signed in. The machine must be on. The stamp in 11.1 keeps that honest.
 
 Builds: about 62 job builds per month against the 500 per month free plan limit.
 
