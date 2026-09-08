@@ -216,15 +216,15 @@ Scaffold checklist, in order:
 1. `node -v` is 20.19+ or 22.12+.
 2. `npm create vite@latest portfolio -- --template react-ts` at the repo root, then move the generated files up so `package.json` sits at the root next to `.scratch/`.
 3. `npm install tailwindcss @tailwindcss/vite motion`.
-4. `vite.config.ts`: plugins `react()` and `tailwindcss()`. One entry, `index.html`.
+4. `vite.config.ts`: plugins `react()` and `tailwindcss()`, `appType: 'mpa'`, and one entry, `index.html`.
 5. `src/index.css`: `@import "tailwindcss";` plus the `@theme` tokens from section 4. Delete `App.css`.
 6. `.nvmrc` with `22`.
 7. No `prebuild` script. `build` stays `tsc -b && vite build`.
 8. `<MotionConfig reducedMotion="user">` around the root.
 9. Copy the nine Poses to `public/avatar/`.
 10. `.gitignore`: add `.scratch/shots/`.
-11. `npm run build`, then `npm run preview`. The page loads. Console has no errors.
-12. Do not add `public/404.html`.
+11. Add `public/404.html` so Cloudflare Pages returns 404 for missing routes instead of the home page.
+12. Run `npm run build`, then `npm run preview`. The home page loads. A missing route returns 404. The console has no errors.
 
 Cloudflare Pages: connect the GitHub repo, production branch `main`, preset React (Vite), build command `npm run build`, output `dist`, root directory empty. Every push to `main` deploys. Pull requests get preview URLs. Free `*.pages.dev` subdomain.
 
@@ -236,7 +236,7 @@ Research: `.scratch/portfolio-spec/research/seo-and-social.md`. Google renders J
 
 ### 9.1 Site URL
 
-The production URL is `https://<project>.pages.dev/`. The build effort replaces `<project>` with the Pages project name in four places. The places are `SITE_URL` in `src/site.ts`, `index.html`, `public/robots.txt`, and `public/sitemap.xml`. `CF_PAGES_URL` is the deployment URL, not the production URL, so the build does not read it.
+The production URL is `https://portfolio-2mj.pages.dev/`. The Pages project name is `portfolio-2mj`. The four URL locations are `SITE_URL` in `src/site.ts`, `index.html`, `public/robots.txt`, and `public/sitemap.xml`. `CF_PAGES_URL` is the deployment URL, not the production URL, so the build does not read it.
 
 URL path: `/` only. The Activity section is an in-page anchor, `/#activity`.
 
@@ -260,24 +260,24 @@ The title keeps the headline and puts the name last. "Copenhagen" and "Claude Co
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Real software, built with AI agents · Emil Vladinov</title>
 <meta name="description" content="Software engineer in Copenhagen. I ship real software with AI coding agents such as Claude Code. Small steps, tests, review, runtime verification.">
-<link rel="canonical" href="https://<project>.pages.dev/">
+<link rel="canonical" href="https://portfolio-2mj.pages.dev/">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" as="image" href="/avatar/pose-center.webp" fetchpriority="high">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Emil Vladinov">
-<meta property="og:url" content="https://<project>.pages.dev/">
+<meta property="og:url" content="https://portfolio-2mj.pages.dev/">
 <meta property="og:title" content="Real software, built with AI agents · Emil Vladinov">
 <meta property="og:description" content="Software engineer in Copenhagen. I ship real software with AI coding agents such as Claude Code. Small steps, tests, review, runtime verification.">
-<meta property="og:image" content="https://<project>.pages.dev/og.png">
+<meta property="og:image" content="https://portfolio-2mj.pages.dev/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Real software, built with AI agents. A pixelated portrait of Emil Vladinov beside the headline.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Real software, built with AI agents · Emil Vladinov">
 <meta name="twitter:description" content="Software engineer in Copenhagen. I ship real software with AI coding agents such as Claude Code. Small steps, tests, review, runtime verification.">
-<meta name="twitter:image" content="https://<project>.pages.dev/og.png">
+<meta name="twitter:image" content="https://portfolio-2mj.pages.dev/og.png">
 <meta name="twitter:image:alt" content="Real software, built with AI agents. A pixelated portrait of Emil Vladinov beside the headline.">
 ```
 
@@ -292,27 +292,27 @@ One JSON-LD script in the head of the home page. Google's policy: mark up only w
   "@graph": [
     {
       "@type": "WebSite",
-      "@id": "https://<project>.pages.dev/#website",
-      "url": "https://<project>.pages.dev/",
+      "@id": "https://portfolio-2mj.pages.dev/#website",
+      "url": "https://portfolio-2mj.pages.dev/",
       "name": "Emil Vladinov",
       "inLanguage": "en"
     },
     {
       "@type": "ProfilePage",
-      "@id": "https://<project>.pages.dev/#profile",
-      "url": "https://<project>.pages.dev/",
-      "isPartOf": { "@id": "https://<project>.pages.dev/#website" },
+      "@id": "https://portfolio-2mj.pages.dev/#profile",
+      "url": "https://portfolio-2mj.pages.dev/",
+      "isPartOf": { "@id": "https://portfolio-2mj.pages.dev/#website" },
       "dateCreated": "2026-09-02",
-      "mainEntity": { "@id": "https://<project>.pages.dev/#person" }
+      "mainEntity": { "@id": "https://portfolio-2mj.pages.dev/#person" }
     },
     {
       "@type": "Person",
-      "@id": "https://<project>.pages.dev/#person",
+      "@id": "https://portfolio-2mj.pages.dev/#person",
       "name": "Emil Vladinov",
       "jobTitle": "Software engineer",
       "description": "Real software, built with AI agents. The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. Software engineer in Copenhagen.",
-      "url": "https://<project>.pages.dev/",
-      "image": "https://<project>.pages.dev/avatar/pose-center.webp",
+      "url": "https://portfolio-2mj.pages.dev/",
+      "image": "https://portfolio-2mj.pages.dev/avatar/pose-center.webp",
       "email": "emo.vladinov@gmail.com",
       "address": {
         "@type": "PostalAddress",
@@ -372,7 +372,7 @@ Production: the two raster files are captured from a monogram template through t
 User-agent: *
 Allow: /
 
-Sitemap: https://<project>.pages.dev/sitemap.xml
+Sitemap: https://portfolio-2mj.pages.dev/sitemap.xml
 ```
 
 `public/sitemap.xml`:
@@ -380,7 +380,7 @@ Sitemap: https://<project>.pages.dev/sitemap.xml
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://<project>.pages.dev/</loc></url>
+  <url><loc>https://portfolio-2mj.pages.dev/</loc></url>
 </urlset>
 ```
 
@@ -407,9 +407,9 @@ Cloudflare adds `X-Robots-Tag: noindex` to preview deployments. The production U
 
 The domain property needs DNS. Emil does not control DNS for `pages.dev`, so the property is a URL-prefix property.
 
-1. Add the URL-prefix property `https://<project>.pages.dev/` in Search Console.
+1. Add the URL-prefix property `https://portfolio-2mj.pages.dev/` in Search Console.
 2. Choose the HTML file method. Put the file in `public/`. Push. Confirm on the live URL. Then click Verify.
-3. Submit `https://<project>.pages.dev/sitemap.xml` in the Sitemaps report.
+3. Submit `https://portfolio-2mj.pages.dev/sitemap.xml` in the Sitemaps report.
 4. Run URL Inspection on the home page and request indexing.
 5. In Bing Webmaster Tools, import the site from Search Console.
 
@@ -443,12 +443,12 @@ No `geo.*` meta tags. Google ignores them.
 
 ### 9.13 Checklist for the build effort
 
-1. Replace `<project>` in the four places from 9.1. `grep -r "<project>"` finds nothing.
+1. Confirm that all Pages project placeholders from 9.1 use `portfolio-2mj`. A tracked-file search for the angle-bracket project token finds nothing.
 2. The head matches 9.3.
 3. The JSON-LD from 9.4 passes the Rich Results Test and the Schema Markup Validator with no error.
 4. `og.png` is 1200 by 630. The LinkedIn Post Inspector and the X Card Validator show the image, title, and description.
 5. `favicon.ico`, `icon.svg`, `apple-touch-icon.png`, `robots.txt`, `sitemap.xml`, and `_headers` answer 200 on the Pages URL.
-6. `curl -I https://<project>.pages.dev/build-log/` answers 404. The route is gone and gets no redirect.
+6. `curl -I https://portfolio-2mj.pages.dev/build-log/` answers 404. The route is gone and gets no redirect.
 7. Lighthouse on the Pages URL: SEO 100, `heading-order` passes, LCP under 2.5 s on mobile, CLS under 0.1.
 8. Search Console shows the property as verified and the sitemap as read.
 9. No analytics, no third-party script, no third-party font request.
