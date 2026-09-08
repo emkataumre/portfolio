@@ -192,6 +192,41 @@ TASK_NAME="portfolio-activity"
 BOT_NAME="activity-bot"
 BOT_EMAIL="activity-bot@users.noreply.github.com"
 
+# Not every bash on Windows ships cygpath, so convert paths here. to_unix
+# turns "C:\a\b" into a slash path. to_win turns a slash path back.
+to_unix() {
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -u "$1"
+    return
+  fi
+  local p="${1//\\//}"
+  local drive="${p%%:*}"
+  local rest="${p#*:}"
+  if [ "$drive" = "$p" ]; then
+    printf "%s\n" "$p"
+    return
+  fi
+  drive="${drive,,}"
+  if [ -d "/mnt/$drive" ]; then
+    printf "/mnt/%s%s\n" "$drive" "$rest"
+  else
+    printf "/%s%s\n" "$drive" "$rest"
+  fi
+}
+
+to_win() {
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$1"
+    return
+  fi
+  local p="$1"
+  p="${p#/mnt}"
+  local drive="${p:1:1}"
+  local rest="${p:2}"
+  drive="${drive^^}"
+  printf "%s:%s\n" "$drive" "${rest//\//\\}"
+}
+
 # Some bash sessions do not export LOCALAPPDATA. Fall back to the profile
 # path, then ask Windows. Stop with a clear message if all three fail.
 APPDATA_WIN="${LOCALAPPDATA:-}"
@@ -209,10 +244,21 @@ fi
 
 # The job clone lives outside the working clone. Windows tools need the
 # backslash form, and bash needs the slash form.
-APPDATA_UNIX="$(cygpath -u "$APPDATA_WIN")"
+APPDATA_UNIX="$(to_unix "$APPDATA_WIN")"
 CLONE_WIN="${APPDATA_WIN}\\portfolio-activity"
 CLONE_UNIX="$APPDATA_UNIX/portfolio-activity"
 LOG_UNIX="$CLONE_UNIX/activity.log"
+
+# Check the commands the stages need. Report every missing one at once.
+MISSING=()
+for cmd in git gh powershell.exe; do
+  command -v "$cmd" >/dev/null 2>&1 || MISSING+=("$cmd")
+done
+if [ ${#MISSING[@]} -gt 0 ]; then
+  echo "The wizard needs these commands on the PATH: ${MISSING[*]}" >&2
+  echo "Start Git Bash and run the wizard again." >&2
+  exit 1
+fi
 
 banner "Activity job: clone, bot identity, and Task Scheduler (issue #29)"
 
@@ -263,10 +309,10 @@ if [[ -d "$CLONE_UNIX/.git" ]]; then
   git -C "$CLONE_UNIX" config --local --get user.name | sed 's/^/    user.name  = /'
   git -C "$CLONE_UNIX" config --local --get user.email | sed 's/^/    user.email = /'
   say ""
-  # git prints a drive letter path and CLONE_UNIX comes from cygpath, so the
+  # git prints a drive letter path and CLONE_UNIX is a slash path, so the
   # comparison needs both names in the same style.
   WORK_CLONE="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-  [[ -n "$WORK_CLONE" ]] && WORK_CLONE="$(cygpath -u "$WORK_CLONE")"
+  [[ -n "$WORK_CLONE" ]] && WORK_CLONE="$(to_unix "$WORK_CLONE")"
   if [[ -n "$WORK_CLONE" && "$WORK_CLONE" != "$CLONE_UNIX" ]]; then
     say "Working clone identity, unchanged:"
     git -C "$WORK_CLONE" config --local --get user.email | sed 's/^/    user.email = /' || say "    none"
@@ -375,7 +421,7 @@ try {
 Get-ScheduledTask -TaskName 'portfolio-activity' | Format-List TaskName, State
 PS1_EOF
 if confirm "Register the task now?"; then
-  if powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$REGISTER_PS1")"; then
+  if powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(to_win "$REGISTER_PS1")"; then
     say "${GREEN}OK${RESET} the task is registered."
   else
     warn "The register script failed. The message above names the cause."
