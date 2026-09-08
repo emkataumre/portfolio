@@ -23,7 +23,7 @@ function FooterContent() {
 
 function Footer({ id }: { id?: string }) {
   return (
-    <footer id={id} className={`mt-30 min-h-screen ${LAYOUT}`}>
+    <footer id={id} className={`mt-30 ${LAYOUT}`}>
       <FooterContent />
     </footer>
   )
@@ -35,7 +35,7 @@ export function FooterReveal({ target }: { target: RefObject<HTMLDivElement | nu
 
   return (
     <motion.footer
-      className={`fixed inset-0 min-h-screen ${LAYOUT} mx-auto max-w-[1040px] px-8`}
+      className={`fixed inset-x-0 bottom-0 h-32 ${LAYOUT} mx-auto max-w-[1040px] px-8`}
       style={{ opacity }}
     >
       <FooterContent />
