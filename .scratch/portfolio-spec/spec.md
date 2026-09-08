@@ -224,7 +224,7 @@ Scaffold checklist, in order:
 9. Copy the nine Poses to `public/avatar/`.
 10. `.gitignore`: add `.scratch/shots/`.
 11. `npm run build`, then `npm run preview`. The page loads. Console has no errors.
-12. Do not add `public/404.html`.
+12. Add `public/404.html` so Cloudflare Pages returns 404 for missing routes instead of the home page.
 
 Cloudflare Pages: connect the GitHub repo, production branch `main`, preset React (Vite), build command `npm run build`, output `dist`, root directory empty. Every push to `main` deploys. Pull requests get preview URLs. Free `*.pages.dev` subdomain.
 
