@@ -367,42 +367,39 @@ say "Then start this wizard again."
 pause "Do both accounts hold a token?"
 
 # -- 4 ---------------------------------------------------------------------
-stage "Configure the git credential helper for the push"
-say "The job pushes to main, so git needs a GitHub credential. gh holds"
-say "the token in Windows Credential Manager and hands it to git."
-say ""
-say "The wizard writes the helper into the job clone only. Your working"
-say "clone at I:${BS}Personal${BS}portfolio keeps the git config it has now."
-say ""
-HELPER_SET=0
-if [[ -d "$CLONE_UNIX/.git" ]]; then
-  GH_MIXED="$(to_mixed "$GH")"
-  # Single quotes inside double quotes stay literal, so the value holds one
-  # quoted path and git reads it as one argument.
-  HELPER_VALUE="!'$GH_MIXED' auth git-credential"
-  git -C "$CLONE_UNIX" config --local "credential.https://github.com.helper" "$HELPER_VALUE"
-  say "Helper in the job clone:"
-  git -C "$CLONE_UNIX" config --local --get-regexp '^credential' | sed 's/^/    /' || say "    none"
-  HELPER_SET=1
-  say "${GREEN}OK${RESET} the job clone has the credential helper."
-else
-  warn "The job clone is missing, so the wizard cannot write the helper."
-  SKIPPED+=("write the credential helper into the job clone")
-fi
+stage "Check the token that the push uses"
+say "The job pushes to main with the token of the emkataumre account."
+say "The wrapper reads the token with 'gh auth token' and puts it in one"
+say "request header. No token reaches a file, and no git config changes."
 say ""
 
-# Test the push path only after the helper is in place. GIT_TERMINAL_PROMPT=0
-# makes git fail instead of asking for a name and a password. GitHub refuses
-# password authentication, so that prompt is a dead end.
-if [[ "$HELPER_SET" -eq 1 ]]; then
-  say "Testing the push path without pushing anything:"
-  if GIT_TERMINAL_PROMPT=0 git -C "$CLONE_UNIX" push --dry-run origin main 2>&1 | sed 's/^/    /'; then
-    say "${GREEN}OK${RESET} the job clone can push to main."
-  else
-    warn "The dry run failed."
-    warn "Correct the login before you register the task."
-  fi
+# An earlier version of this wizard wrote a credential helper here. git runs a
+# helper through sh, and the sh on this machine cannot run a Windows path.
+if [[ -d "$CLONE_UNIX/.git" ]]   && git -C "$CLONE_UNIX" config --local --get-regexp '^credential' >/dev/null 2>&1; then
+  git -C "$CLONE_UNIX" config --local --remove-section 'credential.https://github.com'     >/dev/null 2>&1 || true
+  note "Removed the credential helper that an earlier run wrote."
 fi
+
+PUSH_OK=0
+if PUSH_TOKEN="$("$GH" auth token --user emkataumre 2>/dev/null)"   && [[ -n "$PUSH_TOKEN" ]]; then
+  say "${GREEN}OK${RESET} gh holds a token for emkataumre."
+  if [[ -d "$CLONE_UNIX/.git" ]]; then
+    PUSH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)"
+    say "Testing the push path without pushing anything:"
+    if GIT_TERMINAL_PROMPT=0 git -C "$CLONE_UNIX" -c "http.extraheader=$PUSH_HEADER"       push --dry-run origin main 2>&1 | sed 's/^/    /'; then
+      say "${GREEN}OK${RESET} the job clone can push to main."
+      PUSH_OK=1
+    else
+      warn "The dry run failed. Correct the login before you register the task."
+    fi
+    PUSH_HEADER=""
+  fi
+else
+  warn "gh holds no token for emkataumre."
+  note "    $GH auth login --hostname github.com --git-protocol https --web"
+  SKIPPED+=("log in as emkataumre")
+fi
+PUSH_TOKEN=""
 pause
 
 # -- 5 ---------------------------------------------------------------------

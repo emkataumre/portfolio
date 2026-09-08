@@ -187,8 +187,25 @@ if (-not (Invoke-Git -Arguments @('-c', 'user.name=activity-bot', '-c', 'user.em
 # Log the reason that git gave. Do not retry, do not run the collector again,
 # and never force. Every GitHub number is rebuilt from scratch, so the next run
 # makes the same result again.
-if (-not (Invoke-Git -Arguments @('push', 'origin', 'main'))) {
-    Complete-Run -Outcome 'FAIL' -Code 6 -Detail "push failed, $Subject stays local: $GitOutput"
+# The push carries the token in one request header. A credential helper would
+# need a shell, and the shell that git starts on this machine cannot run a
+# Windows path. The token stays in memory and reaches no file.
+$PushToken = & gh auth token --user emkataumre 2>$null
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($PushToken)) {
+    Complete-Run -Outcome 'FAIL' -Code 6 -Detail 'gh auth token failed for emkataumre'
+}
+$PushHeader = 'AUTHORIZATION: basic ' + [Convert]::ToBase64String(
+    [Text.Encoding]::ASCII.GetBytes('x-access-token:' + $PushToken.Trim()))
+$PushToken = $null
+
+# The header holds the token, so this call cannot go through Invoke-Git. That
+# helper logs the arguments it ran, and the token must reach no log line.
+$PushResult = & git -C $CloneRoot -c "http.extraheader=$PushHeader" push origin main 2>&1
+$PushCode = $LASTEXITCODE
+$PushHeader = $null
+$PushDetail = (($PushResult | ForEach-Object { $_.ToString() }) -join ' ').Trim()
+if ($PushCode -ne 0) {
+    Complete-Run -Outcome 'FAIL' -Code 6 -Detail "push failed, $Subject stays local: $PushDetail"
 }
 
 Complete-Run -Outcome 'PUSHED' -Code 0 -Detail $Summary
