@@ -125,16 +125,16 @@ function ActivityGrid() {
         Use the arrow keys to move between days.
       </p>
 
-      <div className="mt-4 min-w-0 overflow-x-auto">
+      <div className="mt-4 min-w-0 overflow-hidden">
         <div
           role="group"
           aria-labelledby={titleId}
           aria-describedby={hintId}
-          className={`grid [grid-auto-flow:column] ${
-            isYear
-              ? 'w-max gap-[3px] [grid-auto-columns:11px] grid-rows-[repeat(7,11px)]'
-              : 'w-max gap-[3px] [grid-auto-columns:11px] grid-rows-[11px]'
-          }`}
+          className="grid w-full gap-[clamp(1px,0.25vw,3px)] [grid-auto-flow:column]"
+          style={{
+            gridTemplateColumns: `repeat(${isYear ? 53 : indexes.length}, minmax(0, 11px))`,
+            gridTemplateRows: `repeat(${isYear ? 7 : 1}, auto)`,
+          }}
         >
           {Array.from({ length: pad }, (_, slot) => (
             <div key={`pad-${slot}`} aria-hidden="true" />
@@ -149,7 +149,7 @@ function ActivityGrid() {
               tabIndex={index === tabStop ? 0 : -1}
               role="img"
               aria-label={labelFor(index)}
-              className="size-[11px] rounded-[2px] outline-offset-2"
+              className="aspect-square rounded-[2px] outline-offset-2"
               style={{ backgroundColor: cellColor(activity.commits[index]) }}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered((current) => (current === index ? null : current))}
