@@ -4,6 +4,8 @@ Ticket: `.scratch/portfolio-spec/issues/07-stack-scaffold-and-deploy.md`
 Date: 2026-09-02
 Sources: npm registry, official docs of each tool, the Playwright MCP README, and the Claude Code MCP docs. Each section cites its source.
 
+Status: The project removed the Build Log on 2026-09-04. The current site has one page and returns 404 for missing routes. Section 4 keeps the earlier route research as history.
+
 ## 1. Version table
 
 Versions are the `latest` dist-tag on the npm registry on 2026-09-02.
@@ -51,12 +53,11 @@ Do not run these steps in the planning effort. The build effort runs them in ord
 
 6. Replace the content of `src/index.css` with one line: `@import "tailwindcss";`. Delete the template CSS in `src/App.css`. Source: https://tailwindcss.com/docs/installation/using-vite
 7. Pin Node for Cloudflare. Create `.nvmrc` at the repo root with the content `22`. Source: https://developers.cloudflare.com/pages/configuration/build-image/
-8. Add the second route. See section 4. Choose one of the two options there.
+8. Set `appType: 'mpa'` in `vite.config.ts`. Add `public/404.html` so Cloudflare Pages returns 404 for missing routes.
 9. Wrap the app in `MotionConfig`. See section 5.
 10. Check the build. Run `npm run build`. The template script is `tsc -b && vite build`. The output goes to `dist/`.
-11. Check the build output locally. Run `npm run preview` and open the printed URL.
-12. Do not add `public/404.html`. Its absence turns on the SPA fallback on Cloudflare Pages. See section 3.
-13. Commit and push to the public GitHub repo. Then connect the repo in Cloudflare (section 3).
+11. Check the build output locally. Run `npm run preview` and open the printed URL. Confirm that a missing route returns 404.
+12. Commit and push to the public GitHub repo. Then connect the repo in Cloudflare (section 3).
 
 Gotchas:
 
@@ -89,7 +90,7 @@ Facts:
 
 - The project gets a free subdomain on `*.pages.dev`. Every pull request gets a preview deployment. Every push to `main` deploys to production. Non-production branches deploy as previews.
 - Default Node in the v3 build image is 22.16.0. It satisfies Vite 8. Pin it anyway with `.nvmrc`, so the build does not change under you.
-- SPA fallback: "If your project does not include a top-level `404.html` file, Pages assumes that you are deploying a single-page application" and serves `index.html` for every path. No `_redirects` file is needed for `/build-log`.
+- Missing-route behavior: a top-level `404.html` disables the Pages SPA fallback. Pages returns that document for missing paths. Vite uses `appType: 'mpa'` so local preview also returns 404.
 - If a `_redirects` file is ever needed, it goes in `public/` so Vite copies it into `dist/`. Format: `[source] [destination] [code?]`.
 - Free plan limits: 500 builds per month, 20,000 files per site, 25 MiB per file.
 
@@ -102,9 +103,9 @@ Sources:
 - https://developers.cloudflare.com/pages/configuration/redirects/
 - https://developers.cloudflare.com/pages/platform/limits/
 
-## 4. Second route for the Build Log without a heavy router
+## 4. Historical: second route for the Build Log without a heavy router
 
-Two options. Both work with the Pages SPA fallback.
+The initial plan evaluated two options with the Pages SPA fallback. The project removed the Build Log on 2026-09-04, so neither option is current.
 
 Option A, no dependency. Read `window.location.pathname` once, render `BuildLog` for `/build-log` and `Home` for everything else. Links are plain `<a href="/build-log">`. Each click is a full page load. About 10 lines of code. Fits a two-page site.
 
@@ -122,7 +123,7 @@ import { Link, Route, Switch } from "wouter"
 
 Source: https://github.com/molefrog/wouter
 
-Recommendation: Option A for v1. Add `wouter` only if the Build Log needs deep links per entry.
+Historical recommendation: Option A for v1. The current one-page site does not use this option.
 
 ## 5. Reduced motion pattern
 

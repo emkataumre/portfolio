@@ -216,15 +216,15 @@ Scaffold checklist, in order:
 1. `node -v` is 20.19+ or 22.12+.
 2. `npm create vite@latest portfolio -- --template react-ts` at the repo root, then move the generated files up so `package.json` sits at the root next to `.scratch/`.
 3. `npm install tailwindcss @tailwindcss/vite motion`.
-4. `vite.config.ts`: plugins `react()` and `tailwindcss()`. One entry, `index.html`.
+4. `vite.config.ts`: plugins `react()` and `tailwindcss()`, `appType: 'mpa'`, and one entry, `index.html`.
 5. `src/index.css`: `@import "tailwindcss";` plus the `@theme` tokens from section 4. Delete `App.css`.
 6. `.nvmrc` with `22`.
 7. No `prebuild` script. `build` stays `tsc -b && vite build`.
 8. `<MotionConfig reducedMotion="user">` around the root.
 9. Copy the nine Poses to `public/avatar/`.
 10. `.gitignore`: add `.scratch/shots/`.
-11. `npm run build`, then `npm run preview`. The page loads. Console has no errors.
-12. Add `public/404.html` so Cloudflare Pages returns 404 for missing routes instead of the home page.
+11. Add `public/404.html` so Cloudflare Pages returns 404 for missing routes instead of the home page.
+12. Run `npm run build`, then `npm run preview`. The home page loads. A missing route returns 404. The console has no errors.
 
 Cloudflare Pages: connect the GitHub repo, production branch `main`, preset React (Vite), build command `npm run build`, output `dist`, root directory empty. Every push to `main` deploys. Pull requests get preview URLs. Free `*.pages.dev` subdomain.
 
