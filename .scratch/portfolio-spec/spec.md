@@ -99,6 +99,8 @@ The section holds the Activity block from section 11: one commits grid and a cou
 
 Left: `Emil Vladinov · Copenhagen`. Right: the contact links from section 10.
 
+The footer is fixed behind the foreground page. The foreground reserves space equal to the footer height. The footer fades in as that space enters the viewport. The Contact link scrolls to the reveal space.
+
 ## 4. Design tokens
 
 Source: [Visual direction prototype](https://github.com/emkataumre/portfolio/issues/9). Put them in `src/index.css` under Tailwind's `@theme`.
@@ -143,12 +145,11 @@ Source: [Motion choreography prototype](https://github.com/emkataumre/portfolio/
 | Below the fold | each block (testimony, each principle, video slot, playbook line, each work entry, each log row): opacity 0 to 1, y 12 px to 0 | 15% in view, 40 px bottom margin, one element at a time | 0.5 s |
 | Scroll 1: avatar recedes | avatar wrapper y 0 to 40 px, scale 1 to 0.94, opacity 1 to 0.5 | scroll-linked from hero bottom at viewport bottom to hero bottom at viewport top | linked |
 | Scroll 2: rules draw | top rule of each Selected Work entry and bottom rule of the last: scaleX 0 to 1 from the left | entry 40% in view, 80 ms stagger by index | 0.7 s |
+| Scroll 3: footer reveal | fixed footer opacity 0 to 1 behind the foreground page | scroll-linked while the reserved footer space enters the viewport | linked |
 
-The footer motion is its own moment. Issue #36 owns it.
+Implementation: `motion/react`. Reveals use `whileInView` with `viewport={{ once: true, amount: 0.15, margin: "0px 0px -40px 0px" }}`. Scroll 1 and Scroll 3 use `useScroll` with a target ref and `useTransform`.
 
-Implementation: `motion/react`. Reveals use `whileInView` with `viewport={{ once: true, amount: 0.15, margin: "0px 0px -40px 0px" }}`. Scroll 1 uses `useScroll` with a target ref and `useTransform`.
-
-Reduced motion: `<MotionConfig reducedMotion="user">` at the root turns reveals into fades. `useReducedMotion()` turns off scroll 1, scroll 2, and the Cursor Avatar motion.
+Reduced motion: `<MotionConfig reducedMotion="user">` at the root turns reveals into fades. `useReducedMotion()` turns off all three scroll moments and the Cursor Avatar motion. The footer stays in the normal page flow and is fully visible.
 
 ## 6. Cursor Avatar
 
@@ -228,7 +229,7 @@ Scaffold checklist, in order:
 
 Cloudflare Pages: connect the GitHub repo, production branch `main`, preset React (Vite), build command `npm run build`, output `dist`, root directory empty. Every push to `main` deploys. Pull requests get preview URLs. Free `*.pages.dev` subdomain.
 
-Playwright MCP: use the user-scope server. Do not add `.mcp.json` to the repo. Every screenshot needs a `filename` under `.scratch/shots/` and a Read. Check loop per change: resize 1280x800, navigate, snapshot, screenshot, resize 390x844, screenshot, then console errors must be empty. Reduced motion check through `page.emulateMedia({ reducedMotion: "reduce" })`.
+Playwright MCP: use the user-scope server. Do not add `.mcp.json` to the repo. Every screenshot needs a `filename` under `.scratch/shots/` and a Read. Check the current single page per change: resize 1280x800, navigate, snapshot, screenshot, resize 390x844, screenshot, then console errors must be empty. Reduced motion check through `page.emulateMedia({ reducedMotion: "reduce" })`.
 
 ## 9. Head, SEO, and social
 
