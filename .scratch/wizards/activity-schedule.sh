@@ -217,7 +217,8 @@ if [[ -d "$CLONE_UNIX/.git" ]]; then
   fi
 elif [[ -e "$CLONE_UNIX" ]]; then
   warn "$CLONE_WIN exists and is not a git clone."
-  say "Move it or delete it, then run this wizard again."
+  say "Move that directory, or delete it."
+  say "Then start this wizard again."
   SKIPPED+=("create the job clone at $CLONE_WIN")
 else
   say "This clones $REPO_URL into $CLONE_WIN."
@@ -255,26 +256,36 @@ fi
 pause
 
 # -- 3 ---------------------------------------------------------------------
-stage "Check that both GitHub accounts are logged in"
+stage "Check that both GitHub accounts hold a token"
 say "The collector reads one token per account with 'gh auth token --user <login>'."
 say "Both accounts must already hold a token in Windows Credential Manager."
-say "A scheduled run has no browser, so the login must happen now, by hand."
+say "A scheduled run has no browser. Log in now, by hand."
 say ""
 gh auth status 2>&1 | sed 's/^/    /' || true
 say ""
 say "The list above must show 'emkataumre' and 'emil-the-second'."
-say "If one is missing, run this command and come back:"
+say "If one login is missing, run this command."
 note "    gh auth login --hostname github.com --git-protocol https --web"
-pause "Are both accounts logged in?"
+say "Then start this wizard again."
+pause "Do both accounts hold a token?"
 
 # -- 4 ---------------------------------------------------------------------
-stage "Set up the git credential helper for the push"
+stage "Configure the git credential helper for the push"
 say "'gh auth setup-git' makes git push through the gh credential helper,"
 say "which reads Windows Credential Manager. No token is written to disk."
 say ""
-if confirm "Run 'gh auth setup-git' now?"; then
+warn "This one writes GLOBAL git config, not clone config."
+warn "It changes how git gets a GitHub credential in every clone on this"
+warn "machine, and that includes I:\Personal\portfolio."
+say ""
+say "Current global credential config:"
+git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
+say ""
+if confirm "Run 'gh auth setup-git' and accept the global change?"; then
   gh auth setup-git --hostname github.com
-  say "${GREEN}OK${RESET} the helper is set up."
+  say "Global credential config now:"
+  git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
+  say "${GREEN}OK${RESET} the credential helper is configured."
 else
   SKIPPED+=("run gh auth setup-git")
 fi
@@ -284,7 +295,8 @@ if [[ -d "$CLONE_UNIX/.git" ]]; then
   if git -C "$CLONE_UNIX" push --dry-run origin main 2>&1 | sed 's/^/    /'; then
     say "${GREEN}OK${RESET} the job clone can push to main."
   else
-    warn "the dry run failed. Fix the login before you register the task."
+    warn "The dry run failed."
+    warn "Correct the login before you register the task."
   fi
 fi
 pause
@@ -300,30 +312,43 @@ say ""
 note "A stored password is needed. Without it the task runs with no user"
 note "profile, and gh cannot read Windows Credential Manager."
 note "-WakeToRun is not set, so the task never wakes a sleeping laptop."
+note "-AllowStartIfOnBatteries is set, or every run on battery power is skipped."
 say ""
 REGISTER_PS1="$(cygpath -u "$LOCALAPPDATA")/portfolio-activity-register-task.ps1"
 cat > "$REGISTER_PS1" <<'PS1_EOF'
 $ErrorActionPreference = 'Stop'
 $clone = Join-Path $env:LOCALAPPDATA 'portfolio-activity'
 $script = Join-Path $clone 'scripts\activity-job.ps1'
-if (-not (Test-Path -LiteralPath $script)) {
-    throw "The wrapper is missing at $script. Pull main in the job clone first."
+if (-not (Test-Path -LiteralPath $wrapper)) {
+    throw "The wrapper is missing at $wrapper. Reset the job clone to origin/main first."
 }
 $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$script`""
+    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$wrapper`""
 $triggers = @(
     (New-ScheduledTaskTrigger -Daily -At 12:00),
     (New-ScheduledTaskTrigger -Daily -At 17:00)
 )
+# New-ScheduledTaskSettingsSet defaults DisallowStartIfOnBatteries and
+# StopIfGoingOnBatteries to true. This job runs on a laptop, so those two
+# defaults would skip every run that starts on battery power.
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable `
+    -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
 $user = "$env:USERDOMAIN\$env:USERNAME"
 Write-Host ""
 Write-Host "Type the Windows password for $user. Task Scheduler stores it."
-$password = Read-Host 'Password'
-Register-ScheduledTask -TaskName 'portfolio-activity' -Action $action -Trigger $triggers `
-    -Settings $settings -User $user -Password $password -RunLevel Limited -Force | Out-Null
-$password = $null
+Write-Host "The password stays hidden, and this wizard writes it to no file."
+$secure = Read-Host 'Password' -AsSecureString
+$bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+try {
+    $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+    Register-ScheduledTask -TaskName 'portfolio-activity' -Action $action -Trigger $triggers `
+        -Settings $settings -User $user -Password $password -RunLevel Limited -Force | Out-Null
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    $password = $null
+    $secure = $null
+}
 Get-ScheduledTask -TaskName 'portfolio-activity' | Format-List TaskName, State
 PS1_EOF
 if confirm "Register the task now?"; then
@@ -339,7 +364,8 @@ pause
 # -- 6 ---------------------------------------------------------------------
 stage "Start the task once and check the result"
 say "This starts the task by hand and waits for it to stop."
-say "The first run collects every number again, so give it about two minutes."
+say "The first run collects every number again."
+say "Wait about two minutes."
 say ""
 if confirm "Start $TASK_NAME now?"; then
   powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-ScheduledTask -TaskName '$TASK_NAME'; do { Start-Sleep -Seconds 5 } while ((Get-ScheduledTask -TaskName '$TASK_NAME').State -eq 'Running'); Get-ScheduledTaskInfo -TaskName '$TASK_NAME' | Format-List TaskName, LastRunTime, LastTaskResult" | sed 's/^/    /'
@@ -353,7 +379,7 @@ if confirm "Start $TASK_NAME now?"; then
   say "Expect one of these three words in the log line:"
   say "    PUSHED    a number moved, and an 'activity: <date>' commit is on main"
   say "    NOCHANGE  no number moved, so the run committed nothing. This is a pass."
-  say "    FAIL      read the rest of the log line and fix the cause"
+  say "    FAIL      the log line names the cause. Correct it and start the task again."
 else
   SKIPPED+=("start $TASK_NAME once and check the result")
 fi
