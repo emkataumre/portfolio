@@ -21,7 +21,7 @@ function App() {
       >
         <SelectedWork />
       </Section>
-      <Section id="activity" label="Activity" subline="">
+      <Section id="activity" label="Activity">
         <ActivityGrid />
       </Section>
     </Page>

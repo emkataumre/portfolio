@@ -1,19 +1,19 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import activity from '../activity/activity.json'
-
-/** Cell edge and gap in pixels. The pitch is 14 px, so 53 columns fit the 1040 px page. */
-const CELL = 11
-const GAP = 3
+import Reveal from './Reveal'
 
 const RANGES = [7, 30, 365] as const
 type Range = (typeof RANGES)[number]
 
-/** Commit counts that start each accent step. A day below the first step uses `line`. */
+const mix = (percent: number) =>
+  `color-mix(in oklab, var(--color-accent) ${percent}%, transparent)`
+
+/** Commit counts that start each accent step. A day under the first step uses `line`. */
 const STEPS = [
-  { min: 14, color: 'color-mix(in oklab, var(--color-accent) 100%, transparent)' },
-  { min: 7, color: 'color-mix(in oklab, var(--color-accent) 78%, transparent)' },
-  { min: 4, color: 'color-mix(in oklab, var(--color-accent) 56%, transparent)' },
-  { min: 3, color: 'color-mix(in oklab, var(--color-accent) 34%, transparent)' },
+  { min: 14, color: 'var(--color-accent)' },
+  { min: 7, color: mix(78) },
+  { min: 4, color: mix(56) },
+  { min: 3, color: mix(34) },
   { min: 1, color: 'var(--color-accent-soft)' },
 ]
 
@@ -37,7 +37,7 @@ function weekday(day: Date) {
   return (day.getUTCDay() + 6) % 7
 }
 
-function readoutFor(index: number) {
+function labelFor(index: number) {
   const count = activity.commits[index]
   const date = dayAt(index).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -52,30 +52,33 @@ function ActivityGrid() {
   const [range, setRange] = useState<Range>(365)
   const [hovered, setHovered] = useState<number | null>(null)
   const [focused, setFocused] = useState<number | null>(null)
+  // The tab stop remembers the last cell the keyboard reached, so the grid keeps
+  // one tab stop and returns to where it was.
+  const [visited, setVisited] = useState<number | null>(null)
   const cellRefs = useRef(new Map<number, HTMLDivElement>())
+  const titleId = useId()
+  const hintId = useId()
 
   const total = activity.commits.length
-  const start = total - range
-  const indexes = Array.from({ length: range }, (_, offset) => start + offset)
+  const start = Math.max(0, total - range)
+  const indexes = Array.from({ length: total - start }, (_, offset) => start + offset)
   const isYear = range === 365
   const pad = isYear ? weekday(dayAt(start)) : 0
-
-  // One tab stop reaches the grid. Arrow keys then move focus between cells.
-  const tabStop = focused ?? start
+  const tabStop = visited ?? start
 
   const move = (from: number, delta: number) => {
     const next = Math.min(total - 1, Math.max(start, from + delta))
-    setFocused(next)
+    setVisited(next)
     cellRefs.current.get(next)?.focus()
   }
 
   const onKeyDown = (event: React.KeyboardEvent, index: number) => {
-    const column = isYear ? 7 : 1
+    const rowsPerColumn = isYear ? 7 : 1
     const step =
       event.key === 'ArrowRight'
-        ? column
+        ? rowsPerColumn
         : event.key === 'ArrowLeft'
-          ? -column
+          ? -rowsPerColumn
           : isYear && event.key === 'ArrowDown'
             ? 1
             : isYear && event.key === 'ArrowUp'
@@ -86,43 +89,50 @@ function ActivityGrid() {
     move(index, step)
   }
 
-  const shown = hovered ?? focused
+  const readout = hovered ?? focused
 
   return (
-    <div>
-      <div className="flex gap-4 font-mono text-[0.8125rem]">
-        {RANGES.map((option) => (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={option === range}
-            onClick={() => {
-              setRange(option)
-              setFocused(null)
-              setHovered(null)
-            }}
-            className={
-              option === range
-                ? 'text-accent underline underline-offset-2'
-                : 'text-muted underline-offset-2 hover:underline'
-            }
-          >
-            {option} days
-          </button>
-        ))}
+    <Reveal>
+      <div className="flex flex-wrap items-baseline justify-between gap-4">
+        <p id={titleId} className="font-semibold">
+          Commits
+        </p>
+        <div className="flex gap-4 font-mono text-[0.8125rem]">
+          {RANGES.map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={option === range}
+              onClick={() => {
+                setRange(option)
+                setVisited(null)
+                setFocused(null)
+                setHovered(null)
+              }}
+              className={
+                option === range
+                  ? 'text-accent underline underline-offset-2'
+                  : 'text-muted underline-offset-2 hover:underline'
+              }
+            >
+              {option} days
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
+      <p id={hintId} className="sr-only">
+        Use the arrow keys to move between days.
+      </p>
+
+      <div className="mt-4 min-w-0 overflow-x-auto">
         <div
           role="group"
-          aria-label="Commits per day"
-          className="grid w-max"
-          style={{
-            gap: `${GAP}px`,
-            gridAutoFlow: 'column',
-            gridAutoColumns: `${CELL}px`,
-            gridTemplateRows: `repeat(${isYear ? 7 : 1}, ${CELL}px)`,
-          }}
+          aria-labelledby={titleId}
+          aria-describedby={hintId}
+          className={`grid w-max gap-[3px] [grid-auto-columns:11px] [grid-auto-flow:column] ${
+            isYear ? 'grid-rows-[repeat(7,11px)]' : 'grid-rows-[11px]'
+          }`}
         >
           {Array.from({ length: pad }, (_, slot) => (
             <div key={`pad-${slot}`} aria-hidden="true" />
@@ -136,12 +146,15 @@ function ActivityGrid() {
               }}
               tabIndex={index === tabStop ? 0 : -1}
               role="img"
-              aria-label={readoutFor(index)}
+              aria-label={labelFor(index)}
               className="rounded-[2px] outline-offset-2"
               style={{ backgroundColor: cellColor(activity.commits[index]) }}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered((current) => (current === index ? null : current))}
-              onFocus={() => setFocused(index)}
+              onFocus={() => {
+                setVisited(index)
+                setFocused(index)
+              }}
               onBlur={() => setFocused((current) => (current === index ? null : current))}
               onKeyDown={(event) => onKeyDown(event, index)}
             />
@@ -149,10 +162,10 @@ function ActivityGrid() {
         </div>
       </div>
 
-      <p aria-live="polite" className="mt-3 h-5 font-mono text-[0.8125rem] text-muted">
-        {shown === null ? '' : readoutFor(shown)}
+      <p className="mt-3 h-5 font-mono text-[0.8125rem] text-muted">
+        {readout === null ? '' : labelFor(readout)}
       </p>
-    </div>
+    </Reveal>
   )
 }
 
