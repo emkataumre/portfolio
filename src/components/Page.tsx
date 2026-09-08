@@ -23,7 +23,7 @@ function Page({ children }: { children: ReactNode }) {
           {reduced && <Footer id="contact" />}
         </div>
       </div>
-      {!reduced && <div ref={footerTarget} id="contact" className="h-32" />}
+      {!reduced && <div ref={footerTarget} id="contact" className="h-screen" />}
       {!reduced && <FooterReveal target={footerTarget} />}
     </div>
   )

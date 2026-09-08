@@ -99,7 +99,7 @@ The section holds the Activity block from section 11: one commits grid and a cou
 
 Left: `Emil Vladinov · Copenhagen`. Right: the contact links from section 10.
 
-The footer is fixed behind the foreground page. The foreground reserves space equal to the footer height. The footer fades in as that space enters the viewport. The Contact link scrolls to the reveal space.
+The footer is a full-viewport panel fixed behind the foreground page. The foreground reserves one viewport of space. The footer fades in as that space enters the viewport. The Contact link scrolls to the reveal space.
 
 ## 4. Design tokens
 
@@ -145,7 +145,7 @@ Source: [Motion choreography prototype](https://github.com/emkataumre/portfolio/
 | Below the fold | each block (testimony, each principle, video slot, playbook line, each work entry, each log row): opacity 0 to 1, y 12 px to 0 | 15% in view, 40 px bottom margin, one element at a time | 0.5 s |
 | Scroll 1: avatar recedes | avatar wrapper y 0 to 40 px, scale 1 to 0.94, opacity 1 to 0.5 | scroll-linked from hero bottom at viewport bottom to hero bottom at viewport top | linked |
 | Scroll 2: rules draw | top rule of each Selected Work entry and bottom rule of the last: scaleX 0 to 1 from the left | entry 40% in view, 80 ms stagger by index | 0.7 s |
-| Scroll 3: footer reveal | fixed footer opacity 0 to 1 behind the foreground page | scroll-linked while the reserved footer space enters the viewport | linked |
+| Scroll 3: footer reveal | full-viewport fixed footer opacity 0 to 1 behind the foreground page | scroll-linked while the reserved viewport enters the window | linked |
 
 Implementation: `motion/react`. Reveals use `whileInView` with `viewport={{ once: true, amount: 0.15, margin: "0px 0px -40px 0px" }}`. Scroll 1 and Scroll 3 use `useScroll` with a target ref and `useTransform`.
 
