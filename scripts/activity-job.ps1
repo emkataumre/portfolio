@@ -85,6 +85,23 @@ trap {
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
 
+# The collector calls `gh` with no path, so `gh` must be on the PATH. A
+# scheduled task does not inherit the PATH of a shell, so look in the standard
+# install folders too and put the folder that holds gh.exe on the PATH.
+if (-not (Get-Command 'gh' -ErrorAction SilentlyContinue)) {
+    $GhCandidates = @(
+        (Join-Path $env:ProgramFiles 'GitHub CLI\gh.exe'),
+        (Join-Path ${env:ProgramFiles(x86)} 'GitHub CLI\gh.exe'),
+        (Join-Path $env:LOCALAPPDATA 'Programs\GitHub CLI\gh.exe'),
+        (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\gh.exe')
+    )
+    $GhPath = $GhCandidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+    if (-not $GhPath) {
+        Complete-Run -Outcome 'FAIL' -Code 3 -Detail 'gh not found on the PATH or in the standard install folders'
+    }
+    $env:PATH = (Split-Path -Parent $GhPath) + ';' + $env:PATH
+}
+
 # The clone root is the parent of this file, so the wrapper works from any
 # clone directory.
 $CloneRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..') -ErrorAction Stop).Path

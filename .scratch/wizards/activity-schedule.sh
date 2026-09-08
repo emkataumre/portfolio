@@ -142,7 +142,7 @@ write_env() {
 # to a warning (and records it) if gh is unavailable or unauthenticated.
 set_secret() {
   local name="$1" value="$2"
-  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+  if "$GH" auth status >/dev/null 2>&1; then
     if printf '%s' "$value" | gh secret set "$name" >/dev/null 2>&1; then
       WRITTEN_SECRET+=("$name")
       printf '  %s✓ set%s GitHub secret %s\n' "$GREEN" "$RESET" "$name"
@@ -156,7 +156,7 @@ set_secret() {
 # set_var NAME VALUE sets a GitHub Actions repo variable (non-secret).
 set_var() {
   local name="$1" value="$2"
-  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+  if "$GH" auth status >/dev/null 2>&1; then
     if gh variable set "$name" --body "$value" >/dev/null 2>&1; then
       printf '  %s✓ set%s GitHub variable %s\n' "$GREEN" "$RESET" "$name"
       return
@@ -249,14 +249,30 @@ CLONE_WIN="${APPDATA_WIN}\\portfolio-activity"
 CLONE_UNIX="$APPDATA_UNIX/portfolio-activity"
 LOG_UNIX="$CLONE_UNIX/activity.log"
 
+# gh is not always on the PATH, so look in the standard install folders
+# too. Every stage calls gh through $GH.
+GH="gh"
+if ! command -v gh >/dev/null 2>&1; then
+  for candidate in \n    "$(to_unix "${PROGRAMFILES:-C:\Program Files}")/GitHub CLI/gh.exe" \n    "$(to_unix "${PROGRAMFILES:-C:\Program Files}") (x86)/GitHub CLI/gh.exe" \n    "$APPDATA_UNIX/Programs/GitHub CLI/gh.exe" \n    "$APPDATA_UNIX/Microsoft/WinGet/Links/gh.exe" \n    "${HOME:-}/scoop/shims/gh.exe"; do
+    if [ -x "$candidate" ]; then
+      GH="$candidate"
+      PATH="$(dirname "$candidate"):$PATH"
+      export PATH
+      break
+    fi
+  done
+fi
+
 # Check the commands the stages need. Report every missing one at once.
 MISSING=()
-for cmd in git gh powershell.exe; do
+command -v "$GH" >/dev/null 2>&1 || [ -x "$GH" ] || MISSING+=("gh")
+for cmd in git powershell.exe; do
   command -v "$cmd" >/dev/null 2>&1 || MISSING+=("$cmd")
 done
 if [ ${#MISSING[@]} -gt 0 ]; then
   echo "The wizard needs these commands on the PATH: ${MISSING[*]}" >&2
-  echo "Start Git Bash and run the wizard again." >&2
+  echo "Install the missing command, or start Git Bash again to pick up a" >&2
+  echo "PATH change, and then start the wizard again." >&2
   exit 1
 fi
 
@@ -329,7 +345,7 @@ say "The collector reads one token per account with 'gh auth token --user <login
 say "Both accounts must already hold a token in Windows Credential Manager."
 say "A scheduled run has no browser. Log in now, by hand."
 say ""
-gh auth status 2>&1 | sed 's/^/    /' || true
+"$GH" auth status 2>&1 | sed 's/^/    /' || true
 say ""
 say "The list above must show 'emkataumre' and 'emil-the-second'."
 say "If one login is missing, run this command."
@@ -350,7 +366,7 @@ say "Current global credential config:"
 git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
 say ""
 if confirm "Run 'gh auth setup-git' and accept the global change?"; then
-  gh auth setup-git --hostname github.com
+  "$GH" auth setup-git --hostname github.com
   say "Global credential config now:"
   git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
   say "${GREEN}OK${RESET} the credential helper is configured."
@@ -466,7 +482,7 @@ COMMENT="Scheduled task \`$TASK_NAME\` is registered. Job clone: \`$CLONE_WIN\`.
 say "Comment text:"
 say "    $COMMENT"
 if confirm "Post this comment on $REPO issue #29?"; then
-  gh issue comment 29 --repo "$REPO" --body "$COMMENT"
+  "$GH" issue comment 29 --repo "$REPO" --body "$COMMENT"
   say "${GREEN}OK${RESET} posted."
 else
   SKIPPED+=("post the first run result on issue #29")
