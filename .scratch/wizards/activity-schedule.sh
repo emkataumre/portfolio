@@ -192,11 +192,27 @@ TASK_NAME="portfolio-activity"
 BOT_NAME="activity-bot"
 BOT_EMAIL="activity-bot@users.noreply.github.com"
 
+# Some bash sessions do not export LOCALAPPDATA. Fall back to the profile
+# path, then ask Windows. Stop with a clear message if all three fail.
+APPDATA_WIN="${LOCALAPPDATA:-}"
+if [ -z "$APPDATA_WIN" ] && [ -n "${USERPROFILE:-}" ]; then
+  APPDATA_WIN="${USERPROFILE}\\AppData\\Local"
+fi
+if [ -z "$APPDATA_WIN" ]; then
+  APPDATA_WIN="$(cmd.exe /c 'echo %LOCALAPPDATA%' 2>/dev/null | tr -d '\r')"
+fi
+if [ -z "$APPDATA_WIN" ] || [ "$APPDATA_WIN" = "%LOCALAPPDATA%" ]; then
+  echo "The wizard cannot find your local application data folder." >&2
+  echo "Set LOCALAPPDATA and start the wizard again." >&2
+  exit 1
+fi
+
 # The job clone lives outside the working clone. Windows tools need the
 # backslash form, and bash needs the slash form.
-CLONE_WIN="${LOCALAPPDATA}\\portfolio-activity"
-CLONE_UNIX="$(cygpath -u "$LOCALAPPDATA")/portfolio-activity"
-LOG_UNIX="$(cygpath -u "$LOCALAPPDATA")/portfolio-activity/activity.log"
+APPDATA_UNIX="$(cygpath -u "$APPDATA_WIN")"
+CLONE_WIN="${APPDATA_WIN}\\portfolio-activity"
+CLONE_UNIX="$APPDATA_UNIX/portfolio-activity"
+LOG_UNIX="$CLONE_UNIX/activity.log"
 
 banner "Activity job: clone, bot identity, and Task Scheduler (issue #29)"
 
@@ -321,7 +337,7 @@ note "profile, and gh cannot read Windows Credential Manager."
 note "-WakeToRun is not set, so the task never wakes a sleeping laptop."
 note "-AllowStartIfOnBatteries is set, or every run on battery power is skipped."
 say ""
-REGISTER_PS1="$(cygpath -u "$LOCALAPPDATA")/portfolio-activity-register-task.ps1"
+REGISTER_PS1="$APPDATA_UNIX/portfolio-activity-register-task.ps1"
 cat > "$REGISTER_PS1" <<'PS1_EOF'
 $ErrorActionPreference = 'Stop'
 $clone = Join-Path $env:LOCALAPPDATA 'portfolio-activity'
