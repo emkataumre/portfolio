@@ -68,5 +68,6 @@ function structuredDataPlugin(): Plugin {
 }
 
 export default defineConfig({
+  appType: 'mpa',
   plugins: [react(), tailwindcss(), structuredDataPlugin()],
 })
