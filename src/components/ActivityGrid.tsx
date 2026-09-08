@@ -11,10 +11,10 @@ const mix = (percent: number) =>
 /** Commit counts that start each accent step. A day under the first step uses `line`. */
 const STEPS = [
   { min: 14, color: 'var(--color-accent)' },
-  { min: 7, color: mix(78) },
-  { min: 4, color: mix(56) },
-  { min: 3, color: mix(34) },
-  { min: 1, color: 'var(--color-accent-soft)' },
+  { min: 7, color: mix(80) },
+  { min: 4, color: mix(62) },
+  { min: 3, color: mix(46) },
+  { min: 1, color: mix(30) },
 ]
 
 function cellColor(count: number) {
@@ -125,17 +125,19 @@ function ActivityGrid() {
         Use the arrow keys to move between days.
       </p>
 
-      <div className="mt-4 min-w-0 overflow-x-auto">
+      <div className="mt-4 min-w-0 overflow-hidden">
         <div
           role="group"
           aria-labelledby={titleId}
           aria-describedby={hintId}
-          className={`grid w-max gap-[3px] [grid-auto-columns:11px] [grid-auto-flow:column] ${
-            isYear ? 'grid-rows-[repeat(7,11px)]' : 'grid-rows-[11px]'
+          className={`grid [grid-auto-flow:column] ${
+            isYear
+              ? 'w-full gap-[clamp(1px,0.25vw,3px)] [grid-template-columns:repeat(53,minmax(0,1fr))] grid-rows-[repeat(7,auto)]'
+              : 'w-max gap-[3px] [grid-auto-columns:11px] grid-rows-[11px]'
           }`}
         >
           {Array.from({ length: pad }, (_, slot) => (
-            <div key={`pad-${slot}`} aria-hidden="true" />
+            <div key={`pad-${slot}`} aria-hidden="true" className="aspect-square" />
           ))}
           {indexes.map((index) => (
             <div
@@ -147,7 +149,7 @@ function ActivityGrid() {
               tabIndex={index === tabStop ? 0 : -1}
               role="img"
               aria-label={labelFor(index)}
-              className="rounded-[2px] outline-offset-2"
+              className="aspect-square rounded-[2px] outline-offset-2"
               style={{ backgroundColor: cellColor(activity.commits[index]) }}
               onMouseEnter={() => setHovered(index)}
               onMouseLeave={() => setHovered((current) => (current === index ? null : current))}
