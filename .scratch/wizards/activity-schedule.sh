@@ -251,6 +251,7 @@ LOG_UNIX="$CLONE_UNIX/activity.log"
 
 # gh is not always on the PATH, so look in the standard install folders
 # too. Every stage calls gh through $GH.
+BS="\\"
 GH="gh"
 if ! command -v gh >/dev/null 2>&1; then
   for candidate in \n    "$(to_unix "${PROGRAMFILES:-C:\Program Files}")/GitHub CLI/gh.exe" \n    "$(to_unix "${PROGRAMFILES:-C:\Program Files}") (x86)/GitHub CLI/gh.exe" \n    "$APPDATA_UNIX/Programs/GitHub CLI/gh.exe" \n    "$APPDATA_UNIX/Microsoft/WinGet/Links/gh.exe" \n    "${HOME:-}/scoop/shims/gh.exe"; do
@@ -355,33 +356,30 @@ pause "Do both accounts hold a token?"
 
 # -- 4 ---------------------------------------------------------------------
 stage "Configure the git credential helper for the push"
-say "'gh auth setup-git' makes git push through the gh credential helper,"
-say "which reads Windows Credential Manager. No token is written to disk."
+say "The job pushes to main, so git needs a GitHub credential. gh holds"
+say "the token in Windows Credential Manager and hands it to git."
 say ""
-warn "This one writes GLOBAL git config, not clone config."
-warn "It changes how git gets a GitHub credential in every clone on this"
-warn "machine, and that includes I:\Personal\portfolio."
-say ""
-say "Current global credential config:"
-git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
+say "The wizard writes the helper into the job clone only. Your working"
+say "clone at I:${BS}Personal${BS}portfolio keeps the git config it has now."
 say ""
 HELPER_SET=0
-if confirm "Run 'gh auth setup-git' and accept the global change?"; then
-  "$GH" auth setup-git --hostname github.com
-  say "Global credential config now:"
-  git config --global --get-regexp '^credential' | sed 's/^/    /' || say "    none"
-  say "${GREEN}OK${RESET} the credential helper is configured."
+if [[ -d "$CLONE_UNIX/.git" ]]; then
+  GH_WIN="$(to_win "$GH")"
+  git -C "$CLONE_UNIX" config --local     "credential.https://github.com.helper" "!'"'"'$GH_WIN'"'"' auth git-credential"
+  say "Helper in the job clone:"
+  git -C "$CLONE_UNIX" config --local --get-regexp '^credential' | sed 's/^/    /'     || say "    none"
   HELPER_SET=1
+  say "${GREEN}OK${RESET} the job clone has the credential helper."
 else
-  SKIPPED+=("run gh auth setup-git")
-  warn "The job cannot push without a credential helper."
+  warn "The job clone is missing, so the wizard cannot write the helper."
+  SKIPPED+=("write the credential helper into the job clone")
 fi
 say ""
 
 # Test the push path only after the helper is in place. GIT_TERMINAL_PROMPT=0
 # makes git fail instead of asking for a name and a password. GitHub refuses
 # password authentication, so that prompt is a dead end.
-if [[ "$HELPER_SET" -eq 1 && -d "$CLONE_UNIX/.git" ]]; then
+if [[ "$HELPER_SET" -eq 1 ]]; then
   say "Testing the push path without pushing anything:"
   if GIT_TERMINAL_PROMPT=0 git -C "$CLONE_UNIX" push --dry-run origin main 2>&1 | sed 's/^/    /'; then
     say "${GREEN}OK${RESET} the job clone can push to main."
@@ -389,8 +387,6 @@ if [[ "$HELPER_SET" -eq 1 && -d "$CLONE_UNIX/.git" ]]; then
     warn "The dry run failed."
     warn "Correct the login before you register the task."
   fi
-elif [[ -d "$CLONE_UNIX/.git" ]]; then
-  note "The push test needs the credential helper, so the wizard skips it."
 fi
 pause
 
