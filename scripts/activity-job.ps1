@@ -2,8 +2,9 @@
 #
 # Windows Task Scheduler starts this file twice a day. The wizard at
 # .scratch/wizards/activity-schedule.sh creates the clone and registers the
-# task. This file lives in the repository, so every run updates the wrapper
-# itself before it does any work.
+# task. This file lives in the repository, and the reset below pulls a new
+# version of it into the clone. PowerShell reads this file before the reset
+# runs, so a change to the wrapper takes effect on the next run.
 #
 # Exit code 0 means the run finished. That includes the run that finds no new
 # number and publishes nothing. Any other code means the run failed.
@@ -121,7 +122,11 @@ if (-not (Invoke-Git -Arguments @('reset', '--hard', 'origin/main'))) {
 # the collector's own prefix and not the length of the output.
 $OutputLines = & $NodeExe $ScriptPath 2>&1
 $CollectorCode = $LASTEXITCODE
-$Output = ($OutputLines | Out-String).Trim()
+# ToString on each record keeps the message of a stderr line and drops the
+# PowerShell error banner around it, the same treatment that Invoke-Git uses.
+# Out-String here would bury the cause of a failure in 400 characters of
+# CategoryInfo and FullyQualifiedErrorId noise.
+$Output = (($OutputLines | ForEach-Object { $_.ToString() }) -join "`n").Trim()
 $Summary = $Output -split "`r?`n" |
     Where-Object { $_ -match $SummaryPrefix } |
     Select-Object -Last 1

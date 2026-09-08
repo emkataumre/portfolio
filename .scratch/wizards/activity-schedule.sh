@@ -247,8 +247,11 @@ if [[ -d "$CLONE_UNIX/.git" ]]; then
   git -C "$CLONE_UNIX" config --local --get user.name | sed 's/^/    user.name  = /'
   git -C "$CLONE_UNIX" config --local --get user.email | sed 's/^/    user.email = /'
   say ""
-  say "Working clone identity, unchanged:"
-  git -C "$(git rev-parse --show-toplevel)" config --local --get user.email | sed 's/^/    user.email = /'
+  WORK_CLONE="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$WORK_CLONE" && "$WORK_CLONE" != "$CLONE_UNIX" ]]; then
+    say "Working clone identity, unchanged:"
+    git -C "$WORK_CLONE" config --local --get user.email | sed 's/^/    user.email = /' || say "    none"
+  fi
 else
   warn "no job clone yet, so the identity is not set."
   SKIPPED+=("set the bot identity in $CLONE_WIN")
@@ -307,7 +310,8 @@ say "Task name:  $TASK_NAME"
 say "Runs:       12:00 and 17:00, local time, every day"
 say "Runs as:    your own Windows account, logged on or not, stored password"
 say "Time limit: 10 minutes. A measured run took 76 seconds."
-say "Action:     powershell.exe -File $CLONE_WIN\\scripts\\activity-job.ps1"
+say "Action:     powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass"
+say "            -File $CLONE_WIN\\scripts\\activity-job.ps1"
 say ""
 note "A stored password is needed. Without it the task runs with no user"
 note "profile, and gh cannot read Windows Credential Manager."
@@ -318,7 +322,7 @@ REGISTER_PS1="$(cygpath -u "$LOCALAPPDATA")/portfolio-activity-register-task.ps1
 cat > "$REGISTER_PS1" <<'PS1_EOF'
 $ErrorActionPreference = 'Stop'
 $clone = Join-Path $env:LOCALAPPDATA 'portfolio-activity'
-$script = Join-Path $clone 'scripts\activity-job.ps1'
+$wrapper = Join-Path $clone 'scripts\activity-job.ps1'
 if (-not (Test-Path -LiteralPath $wrapper)) {
     throw "The wrapper is missing at $wrapper. Reset the job clone to origin/main first."
 }
@@ -352,8 +356,12 @@ try {
 Get-ScheduledTask -TaskName 'portfolio-activity' | Format-List TaskName, State
 PS1_EOF
 if confirm "Register the task now?"; then
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$REGISTER_PS1")"
-  say "${GREEN}OK${RESET} the task is registered."
+  if powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$REGISTER_PS1")"; then
+    say "${GREEN}OK${RESET} the task is registered."
+  else
+    warn "The register script failed. The message above names the cause."
+    SKIPPED+=("register the scheduled task $TASK_NAME")
+  fi
 else
   SKIPPED+=("register the scheduled task $TASK_NAME")
 fi
