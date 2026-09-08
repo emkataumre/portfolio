@@ -317,6 +317,8 @@ BRANCH=$(git branch --show-current)
 git diff --check
 npm run build
 npm run lint
+[[ -z "$(git diff --cached --name-only)" ]] || \
+  fail "Build and deployment" "The Git index already contains staged changes. Unstage them and restart the wizard."
 git add -- "public/$VERIFICATION_NAME"
 if git diff --cached --quiet; then
   say "The verification file is already committed."
