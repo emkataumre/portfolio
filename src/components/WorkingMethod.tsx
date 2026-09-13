@@ -1,9 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import Reveal from './Reveal'
 
-/** The share of the viewport that the playing video fills. */
-const PLAY_FILL = 0.92
-
 const principles = [
   {
     title: 'Plan first',
@@ -42,33 +39,19 @@ const verificationStages = [
 
 function WorkingMethod() {
   const [playing, setPlaying] = useState(false)
-  const frameRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  // While the video plays it moves to the middle of the screen and grows. The
-  // element stays in the flow, so playback survives: only a transform moves it.
-  // The page scroll is locked, which keeps the centred box correct without a
-  // scroll listener fighting the 500 ms transition.
+  // The video stays mounted while a fixed wrapper moves it above the page.
+  // Native media controls break seek coordinates when the video or an ancestor
+  // is scaled with a CSS transform, so the expanded player uses viewport units.
   useLayoutEffect(() => {
     const video = videoRef.current
     if (!playing || !video) return
     const { body, documentElement } = document
+    const playbackScrollY = window.scrollY
     const barWidth = window.innerWidth - documentElement.clientWidth
     body.style.overflow = 'hidden'
     body.style.paddingRight = `${barWidth}px`
-
-    // The transform goes straight on the node. State would re-render the video
-    // element on every resize, and React owns no other part of this value.
-    const place = () => {
-      const box = frameRef.current?.getBoundingClientRect()
-      if (!box) return
-      const width = Math.min(window.innerWidth, (window.innerHeight * 16) / 9) * PLAY_FILL
-      const x = window.innerWidth / 2 - (box.left + box.width / 2)
-      const y = window.innerHeight / 2 - (box.top + box.height / 2)
-      video.style.transform = `translate(${x}px, ${y}px) scale(${width / box.width})`
-    }
-    place()
-    window.addEventListener('resize', place)
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') videoRef.current?.pause()
@@ -76,10 +59,9 @@ function WorkingMethod() {
     window.addEventListener('keydown', onKeyDown)
 
     return () => {
-      video.style.transform = ''
       body.style.overflow = ''
       body.style.paddingRight = ''
-      window.removeEventListener('resize', place)
+      window.scrollTo(0, playbackScrollY)
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [playing])
@@ -105,23 +87,33 @@ function WorkingMethod() {
           onClick={() => videoRef.current?.pause()}
           aria-hidden="true"
         />
-        <div ref={frameRef} className="aspect-[16/9] w-full">
-          <video
-            ref={videoRef}
-            className="relative z-50 h-full w-full rounded-[10px] border border-line bg-[#0b0b0c] transition-transform duration-500 ease-out motion-reduce:transition-none"
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-            src="/working-method.mp4"
-            poster="/working-method-poster.jpg"
-            controls
-            playsInline
-            preload="metadata"
-            aria-label="One feature, from idea to production, in 69 seconds. Silent."
-          />
+        <div className="aspect-[16/9] w-full">
+          <div
+            className={
+              playing
+                ? 'pointer-events-none fixed inset-0 z-50 grid place-items-center'
+                : 'h-full w-full'
+            }
+          >
+            <video
+              ref={videoRef}
+              className={`pointer-events-auto aspect-video rounded-[10px] border border-line bg-[#0b0b0c] ${
+                playing ? 'w-[min(92vw,calc(92vh*16/9))]' : 'h-full w-full'
+              }`}
+              onPlay={() => setPlaying(true)}
+              onPause={() => setPlaying(false)}
+              src="/working-method.mp4"
+              poster="/working-method-poster.jpg"
+              controls
+              playsInline
+              preload="metadata"
+              aria-label="One feature, from idea to production, in 69 seconds. Silent."
+            />
+          </div>
         </div>
       </Reveal>
       </div>
-      <Reveal as="div" className="mt-10 min-[760px]:col-span-2 min-[760px]:mt-0">
+      <Reveal as="div" className="hidden min-[760px]:col-span-2 min-[760px]:mt-0 min-[760px]:block">
         <section aria-labelledby="workflow-title">
           <div className="border-b border-line pb-3">
             <h3 id="workflow-title" className="text-base font-semibold tracking-[-0.01em]">
@@ -310,6 +302,8 @@ function WorkingMethod() {
         A version of this workflow, aimed towards software engineering teams can be found{' '}
         <a
           href="https://github.com/solution8-com/agentic-playbook"
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-accent underline-offset-2 hover:underline"
         >
           here

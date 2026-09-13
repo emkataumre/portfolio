@@ -10,10 +10,10 @@ function FooterContent() {
       <span>Emil Vladinov · Copenhagen</span>
       <div className="flex flex-wrap gap-x-7 gap-y-2">
         <a href={`mailto:${site.email}`}>{site.email}</a>
-        <a href={site.github} rel="me">
+        <a href={site.github} target="_blank" rel="me noopener noreferrer">
           GitHub
         </a>
-        <a href={site.linkedin} rel="me">
+        <a href={site.linkedin} target="_blank" rel="me noopener noreferrer">
           LinkedIn
         </a>
       </div>

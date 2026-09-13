@@ -116,6 +116,8 @@ function Hero() {
                       </ul>
                       <a
                         href={site.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="mt-3.5 inline-flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-[0.9rem] font-medium transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                       >
                         GitHub
