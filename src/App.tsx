@@ -11,7 +11,7 @@ function App() {
     <Page>
       <Hero />
       <NowStrip />
-      <Section id="method" label="Working Method" subline="How agent code gets to main">
+      <Section id="method" label="Working Method" subline="How agent code gets to main" wideContent>
         <WorkingMethod />
       </Section>
       <Section

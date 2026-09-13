@@ -4,20 +4,25 @@ type SectionProps = {
   id: string
   label: string
   subline?: string
+  wideContent?: boolean
   /** Each page has one h1. The rail label is the h1 on a page without a hero. Default h2. */
   headingLevel?: 'h1' | 'h2'
   children: ReactNode
 }
 
-function Section({ id, label, subline, headingLevel = 'h2', children }: SectionProps) {
+function Section({ id, label, subline, wideContent = false, headingLevel = 'h2', children }: SectionProps) {
   const Heading = headingLevel
   return (
     <section id={id} className="mt-24 grid gap-10 min-[760px]:grid-cols-[200px_1fr]">
-      <div className="self-start min-[760px]:sticky min-[760px]:top-6">
-        <Heading className="text-base font-semibold tracking-[-0.01em]">{label}</Heading>
-        {subline && <p className="text-base text-muted">{subline}</p>}
+      <div className="self-stretch">
+        <div className="min-[760px]:sticky min-[760px]:top-6">
+          <Heading className="text-base font-semibold tracking-[-0.01em]">{label}</Heading>
+          {subline && <p className="text-base text-muted">{subline}</p>}
+        </div>
       </div>
-      <div className="min-w-0 text-base leading-[1.55]">{children}</div>
+      <div className={`min-w-0 text-base leading-[1.55] ${wideContent ? 'min-[760px]:contents' : ''}`}>
+        {children}
+      </div>
     </section>
   )
 }
