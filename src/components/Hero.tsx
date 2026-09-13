@@ -134,6 +134,26 @@ function Hero() {
                           <path d="M3 9 9 3M4 3h5v5" />
                         </svg>
                       </a>
+                      <a
+                        href={site.linkedin}
+                        target="_blank"
+                        rel="me noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-[0.9rem] font-medium transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      >
+                        LinkedIn
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 12 12"
+                          className="size-3"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 9 9 3M4 3h5v5" />
+                        </svg>
+                      </a>
                     </div>
                   </div>
                 </motion.div>

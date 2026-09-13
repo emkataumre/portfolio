@@ -306,7 +306,10 @@ function WorkingMethod() {
           </div>
         </section>
       </Reveal>
-      <Reveal as="p" className="mt-6 text-muted min-[760px]:col-start-2 min-[760px]:mt-0">
+      <Reveal
+        as="p"
+        className="mt-4 text-sm text-muted min-[760px]:col-span-2 min-[760px]:-mt-6 min-[760px]:max-w-[34rem] min-[760px]:justify-self-end min-[760px]:text-right"
+      >
         A version of this workflow, aimed towards software engineering teams can be found{' '}
         <a
           href="https://github.com/solution8-com/agentic-playbook"

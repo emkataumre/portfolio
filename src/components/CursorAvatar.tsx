@@ -1,4 +1,4 @@
-import { useMemo, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useRef } from 'react'
 import { motion, useTransform } from 'motion/react'
 import { ASCII_POSES } from './asciiPoses'
 import { usePoseVector } from './usePoseVector'
@@ -9,43 +9,11 @@ type CursorAvatarProps = {
   onToggle: () => void
 }
 
-type TideStyle = CSSProperties & { '--tide-delay': string }
-const ASCII_GRID_COLUMNS = 68
-
-function renderPose(source: string) {
-  const lines = source.split('\n').map((line) => line.padEnd(ASCII_GRID_COLUMNS))
-  const nodes: ReactNode[] = []
-
-  lines.forEach((line, row) => {
-    Array.from(line).forEach((character, column) => {
-      const key = `${row}-${column}`
-      if (character === ' ' || (column * 7 + row * 11) % 5 > 2) {
-        nodes.push(character)
-        return
-      }
-
-      const style: TideStyle = {
-        '--tide-delay': `${-(column * 0.035 + row * 0.12)}s`,
-      }
-      nodes.push(
-        <span className="ascii-avatar__glyph" style={style} key={key}>
-          {character}
-        </span>,
-      )
-    })
-    if (row < lines.length - 1) nodes.push('\n')
-  })
-
-  return nodes
-}
-
 /** The hero Cursor Avatar. It swaps between nine fixed ASCII Poses. */
 function CursorAvatar({ expanded, controlsId, onToggle }: CursorAvatarProps) {
   const container = useRef<HTMLButtonElement>(null)
-  const effectsEnabled = !expanded
-  const { x, y, pose, reduced } = usePoseVector(container, effectsEnabled)
-  const activePose = effectsEnabled ? pose : 'center'
-  const glyphs = useMemo(() => renderPose(ASCII_POSES[activePose]), [activePose])
+  const { x, y, pose, reduced } = usePoseVector(container)
+  const activePose = ASCII_POSES[pose]
 
   const translateX = useTransform(x, (value) => value * 2)
   const translateY = useTransform(y, (value) => value * 2)
@@ -66,14 +34,17 @@ function CursorAvatar({ expanded, controlsId, onToggle }: CursorAvatarProps) {
     >
       <motion.div
         className="relative size-full"
-        style={reduced || !effectsEnabled ? undefined : { x: translateX, y: translateY, rotate: x, scale }}
+        style={reduced ? undefined : { x: translateX, y: translateY, rotate: x, scale }}
       >
         <pre
           aria-hidden="true"
-          data-pose={activePose}
-          className={`ascii-avatar${effectsEnabled ? ' ascii-avatar--active' : ''}`}
+          data-pose={pose}
+          className={`ascii-avatar ascii-avatar--active${expanded ? ' ascii-avatar--expanded' : ''}`}
         >
-          {glyphs}
+          <span className="ascii-avatar__base">{activePose}</span>
+          <span aria-hidden="true" className="ascii-avatar__wave">
+            {activePose}
+          </span>
         </pre>
       </motion.div>
     </button>
