@@ -38,7 +38,7 @@ const verificationStages = [
 ]
 
 function WorkingMethod() {
-  const [playing, setPlaying] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // The video stays mounted while a fixed wrapper moves it above the page.
@@ -46,7 +46,7 @@ function WorkingMethod() {
   // is scaled with a CSS transform, so the expanded player uses viewport units.
   useLayoutEffect(() => {
     const video = videoRef.current
-    if (!playing || !video) return
+    if (!expanded || !video) return
     const { body, documentElement } = document
     const playbackScrollY = window.scrollY
     const barWidth = window.innerWidth - documentElement.clientWidth
@@ -54,7 +54,10 @@ function WorkingMethod() {
     body.style.paddingRight = `${barWidth}px`
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') videoRef.current?.pause()
+      if (event.key === 'Escape') {
+        video.pause()
+        setExpanded(false)
+      }
     }
     window.addEventListener('keydown', onKeyDown)
 
@@ -64,7 +67,12 @@ function WorkingMethod() {
       window.scrollTo(0, playbackScrollY)
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [playing])
+  }, [expanded])
+
+  const closePlayer = () => {
+    videoRef.current?.pause()
+    setExpanded(false)
+  }
 
   return (
     <>
@@ -83,14 +91,14 @@ function WorkingMethod() {
       </div>
       <Reveal className="mt-8">
         <div
-          className={`fixed inset-0 z-40 bg-bg/85 transition-opacity duration-500 ease-out ${playing ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-          onClick={() => videoRef.current?.pause()}
+          className={`fixed inset-0 z-40 bg-bg/85 transition-opacity duration-500 ease-out ${expanded ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+          onClick={closePlayer}
           aria-hidden="true"
         />
         <div className="aspect-[16/9] w-full">
           <div
             className={
-              playing
+              expanded
                 ? 'pointer-events-none fixed inset-0 z-50 grid place-items-center'
                 : 'h-full w-full'
             }
@@ -98,10 +106,10 @@ function WorkingMethod() {
             <video
               ref={videoRef}
               className={`pointer-events-auto aspect-video rounded-[10px] border border-line bg-[#0b0b0c] ${
-                playing ? 'w-[min(92vw,calc(92vh*16/9))]' : 'h-full w-full'
+                expanded ? 'w-[min(92vw,calc(92vh*16/9))]' : 'h-full w-full'
               }`}
-              onPlay={() => setPlaying(true)}
-              onPause={() => setPlaying(false)}
+              onPlay={() => setExpanded(true)}
+              onEnded={() => setExpanded(false)}
               src="/working-method.mp4"
               poster="/working-method-poster.jpg"
               controls
