@@ -50,6 +50,8 @@ Lede:
 
 > The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. I own the result. Software engineer in Copenhagen.
 
+The Cursor Avatar is the collapsed state of a profile card. The open card shows `Emil Vladinov`, `Creator and enjoyer of things.`, age 23, `Copenhagen, Denmark`, and a GitHub link. At 1060 px and wider, the card moves 200 px left and opens a 200 px panel to the right. Below 1060 px, the panel opens below the photo and stays in the page flow.
+
 ### 3.3 Now strip
 
 Two rows. Each row: accent dot, label column 92 px, text.
@@ -163,7 +165,7 @@ Preload only `pose-center.webp` in the head with `fetchpriority="high"`. Decode 
 
 ### 6.2 Component contract
 
-One component, `CursorAvatar`, no props in v1. One hook, `usePoseVector`, that returns the smoothed vector and the active Pose. Frame 280 px square on desktop, 220 px under 760 px, radius 28 px, `aria-label="Emil Vladinov"`. Render the nine images stacked. The active one has `visibility: visible`, the rest `hidden`. The Center image carries `alt="Pixelated portrait of Emil Vladinov"`, the others `alt=""`.
+The profile card owns its open state and passes it to `CursorAvatar`. The collapsed shell is 280 px square on desktop and 220 px under 760 px, with a 28 px radius, 1 px border, and 8 px padding. The photo is a native button with a 22 px radius, `aria-expanded`, and `aria-controls`. Click, Enter, or Space toggles the card. Render the nine images stacked. The active one has `visibility: visible`, and the rest are hidden. The Center image carries `alt="Pixelated portrait of Emil Vladinov"`, and the others carry `alt=""`.
 
 ### 6.3 Tracking
 
@@ -192,11 +194,17 @@ The OG image and the favicon keep the pixel look as a brand mark. The Center alt
 
 ### 6.5 Touch
 
-On a coarse primary pointer (`(pointer: coarse)`): idle drift. Every 2.5 to 4 s move to a neighbouring Pose at magnitude 0.9. Return to Center every third move. Pause when the hero is under 20% in view or the tab is hidden. A tap on the avatar points it at the tap and pauses drift for 4 s. No page-wide tap listener.
+On a coarse primary pointer (`(pointer: coarse)`), the face looks Down or Up with the scroll direction, then returns to Center after 1.5 s. It ignores pointer movement.
 
 ### 6.6 Reduced motion
 
 Static Center Pose, no wobble, no drift, no tracking. The hover overlay switches on and off instantly, with no fade and no flicker.
+
+### 6.7 Profile card unfold
+
+The collapsed card keeps the Cursor Avatar size and radius. At 1060 px and wider, opening moves the card 200 px left and unfolds a 200 px panel to the right. Below 1060 px, the panel opens below the photo in the page flow. The motion lasts 0.32 s and uses `[0.22, 1, 0.36, 1]`. Under reduced motion, the panel appears and disappears immediately.
+
+While the card is open, show only the plain Center Pose. Disable pointer tracking, the wobble transform, the 2 px pixel filter, the hover overlay, and the coarse-pointer scroll response. Restore all effects when the card closes.
 
 ## 7. Build Log (removed)
 
@@ -533,7 +541,7 @@ Nothing secret enters the repo. The tokens stay in `gh auth` on Emil's machine.
 ## 12. Definition of done for the build
 
 - The page renders with the final copy, tokens, and motion from this spec.
-- Cursor Avatar tracks the pointer on desktop, drifts on touch, and stays static under reduced motion.
+- Cursor Avatar tracks the pointer on desktop, responds to scrolling on coarse pointers, and stays static under reduced motion. Its profile card works with pointer and keyboard input at both responsive layouts.
 - The activity job ran twice from Task Scheduler, the JSON changed, and the site shows the new stamp.
 - Lighthouse on the Pages URL: no accessibility failure, no console error.
 - The Playwright check loop passes on both viewports.

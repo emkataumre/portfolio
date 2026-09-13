@@ -18,12 +18,19 @@ function loadPose(pose: Pose) {
   return loading
 }
 
+type CursorAvatarProps = {
+  expanded: boolean
+  controlsId: string
+  onToggle: () => void
+}
+
 /** The hero Cursor Avatar. Nine stacked Pose images, the active one visible. */
-function CursorAvatar() {
-  const container = useRef<HTMLDivElement>(null)
+function CursorAvatar({ expanded, controlsId, onToggle }: CursorAvatarProps) {
+  const container = useRef<HTMLButtonElement>(null)
   const filter = useRef<HTMLCanvasElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
-  const { x, y, pose, reduced } = usePoseVector(container)
+  const effectsEnabled = !expanded
+  const { x, y, pose, reduced } = usePoseVector(container, effectsEnabled)
   const [hovered, setHovered] = useState(false)
   // The canvas turns opaque only after its first draw, so a blank or stale frame never fades in.
   const [drawn, setDrawn] = useState(false)
@@ -40,6 +47,8 @@ function CursorAvatar() {
   useEffect(() => {
     let cancelled = false
     let cleanup = () => {}
+
+    if (!effectsEnabled) return
 
     loadPose(pose)
       .then((image) => {
@@ -60,12 +69,12 @@ function CursorAvatar() {
       cancelled = true
       cleanup()
     }
-  }, [pose])
+  }, [effectsEnabled, pose])
 
   // Hover overlay: draw the active Pose on enter, on Pose change, on resize, and on an
   // interval with a random source offset. Reduced motion draws once and skips the flicker.
   useEffect(() => {
-    if (!hovered) return
+    if (!effectsEnabled || !hovered) return
 
     let cancelled = false
     let timer: number | undefined
@@ -95,16 +104,21 @@ function CursorAvatar() {
       cancelled = true
       cleanup()
     }
-  }, [hovered, pose, reduced])
+  }, [effectsEnabled, hovered, pose, reduced])
+
+  const activePose = effectsEnabled ? pose : 'center'
 
   return (
-    <div
+    <button
       ref={container}
-      role="img"
-      aria-label="Emil Vladinov"
-      className="size-55 overflow-hidden rounded-[28px] bg-[#e9e9e6] min-[760px]:size-70"
+      type="button"
+      aria-expanded={expanded}
+      aria-controls={controlsId}
+      aria-label={expanded ? 'Fold the profile card' : 'Unfold the profile card'}
+      onClick={onToggle}
+      className="block aspect-square w-full cursor-pointer overflow-hidden rounded-[22px] bg-[#e9e9e6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       onPointerEnter={() => {
-        if (!window.matchMedia('(pointer: coarse)').matches) setHovered(true)
+        if (effectsEnabled && !window.matchMedia('(pointer: coarse)').matches) setHovered(true)
       }}
       onPointerLeave={() => {
         setHovered(false)
@@ -113,7 +127,7 @@ function CursorAvatar() {
     >
       <motion.div
         className="relative size-full"
-        style={reduced ? undefined : { x: translateX, y: translateY, rotate: x, scale }}
+        style={reduced || !effectsEnabled ? undefined : { x: translateX, y: translateY, rotate: x, scale }}
       >
         {POSES.map((name) => (
           <img
@@ -124,27 +138,31 @@ function CursorAvatar() {
             height={370}
             fetchPriority={name === 'center' ? 'high' : undefined}
             className="absolute inset-0 size-full object-cover"
-            style={{ visibility: name === pose ? 'visible' : 'hidden' }}
+            style={{ visibility: name === activePose ? 'visible' : 'hidden' }}
           />
         ))}
-        <canvas
-          ref={filter}
-          aria-hidden
-          className="pointer-events-none absolute inset-0 size-full"
-          style={{ imageRendering: 'pixelated' }}
-        />
-        <canvas
-          ref={canvas}
-          aria-hidden
-          className="pointer-events-none absolute inset-0 size-full"
-          style={{
-            imageRendering: 'pixelated',
-            opacity: hovered && drawn ? 1 : 0,
-            transition: reduced ? 'none' : FADE,
-          }}
-        />
+        {effectsEnabled && (
+          <>
+            <canvas
+              ref={filter}
+              aria-hidden
+              className="pointer-events-none absolute inset-0 size-full"
+              style={{ imageRendering: 'pixelated' }}
+            />
+            <canvas
+              ref={canvas}
+              aria-hidden
+              className="pointer-events-none absolute inset-0 size-full"
+              style={{
+                imageRendering: 'pixelated',
+                opacity: hovered && drawn ? 1 : 0,
+                transition: reduced ? 'none' : FADE,
+              }}
+            />
+          </>
+        )}
       </motion.div>
-    </div>
+    </button>
   )
 }
 

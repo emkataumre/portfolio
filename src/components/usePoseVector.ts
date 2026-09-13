@@ -81,7 +81,7 @@ export function nextPose(current: Pose, x: number, y: number): Pose {
  * it attaches no listeners and the vector stays at zero. On a coarse primary
  * pointer it ignores pointer moves and follows the scroll direction instead.
  */
-export function usePoseVector(container: RefObject<HTMLElement | null>) {
+export function usePoseVector(container: RefObject<HTMLElement | null>, enabled = true) {
   const reduced = useReducedMotion() === true
   const rawX = useMotionValue(0)
   const rawY = useMotionValue(0)
@@ -96,7 +96,11 @@ export function usePoseVector(container: RefObject<HTMLElement | null>) {
   useMotionValueEvent(y, 'change', update)
 
   useEffect(() => {
-    if (reduced) return
+    if (reduced || !enabled) {
+      rawX.set(0)
+      rawY.set(0)
+      return
+    }
 
     let cancelled = false
     const coarse = window.matchMedia('(pointer: coarse)').matches
@@ -153,7 +157,7 @@ export function usePoseVector(container: RefObject<HTMLElement | null>) {
       document.documentElement.removeEventListener('pointerleave', reset)
       window.removeEventListener('blur', reset)
     }
-  }, [reduced, container, rawX, rawY])
+  }, [reduced, enabled, container, rawX, rawY])
 
   return { x, y, pose, reduced }
 }
