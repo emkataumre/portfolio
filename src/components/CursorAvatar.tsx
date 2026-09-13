@@ -1,22 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useMemo, useRef, type CSSProperties, type ReactNode } from 'react'
 import { motion, useTransform } from 'motion/react'
-import { POSES, poseSrc, usePoseVector, type Pose } from './usePoseVector'
-import { FLICKER_MS, drawPixelFilter, drawPixelOverlay } from './pixelOverlay'
-
-const FADE = 'opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1)'
-
-// Decoded Pose images for the overlay, loaded once per Pose on demand.
-const poseImages = new Map<Pose, Promise<HTMLImageElement>>()
-function loadPose(pose: Pose) {
-  let loading = poseImages.get(pose)
-  if (!loading) {
-    const image = new Image()
-    image.src = poseSrc(pose)
-    loading = image.decode().then(() => image)
-    poseImages.set(pose, loading)
-  }
-  return loading
-}
+import { ASCII_POSES } from './asciiPoses'
+import { usePoseVector } from './usePoseVector'
 
 type CursorAvatarProps = {
   expanded: boolean
@@ -24,89 +9,50 @@ type CursorAvatarProps = {
   onToggle: () => void
 }
 
-/** The hero Cursor Avatar. Nine stacked Pose images, the active one visible. */
+type TideStyle = CSSProperties & { '--tide-delay': string }
+const ASCII_GRID_COLUMNS = 68
+
+function renderPose(source: string) {
+  const lines = source.split('\n').map((line) => line.padEnd(ASCII_GRID_COLUMNS))
+  const nodes: ReactNode[] = []
+
+  lines.forEach((line, row) => {
+    Array.from(line).forEach((character, column) => {
+      const key = `${row}-${column}`
+      if (character === ' ' || (column * 7 + row * 11) % 5 > 2) {
+        nodes.push(character)
+        return
+      }
+
+      const style: TideStyle = {
+        '--tide-delay': `${-(column * 0.035 + row * 0.12)}s`,
+      }
+      nodes.push(
+        <span className="ascii-avatar__glyph" style={style} key={key}>
+          {character}
+        </span>,
+      )
+    })
+    if (row < lines.length - 1) nodes.push('\n')
+  })
+
+  return nodes
+}
+
+/** The hero Cursor Avatar. It swaps between nine fixed ASCII Poses. */
 function CursorAvatar({ expanded, controlsId, onToggle }: CursorAvatarProps) {
   const container = useRef<HTMLButtonElement>(null)
-  const filter = useRef<HTMLCanvasElement>(null)
-  const canvas = useRef<HTMLCanvasElement>(null)
   const effectsEnabled = !expanded
   const { x, y, pose, reduced } = usePoseVector(container, effectsEnabled)
-  const [hovered, setHovered] = useState(false)
-  // The canvas turns opaque only after its first draw, so a blank or stale frame never fades in.
-  const [drawn, setDrawn] = useState(false)
+  const activePose = effectsEnabled ? pose : 'center'
+  const glyphs = useMemo(() => renderPose(ASCII_POSES[activePose]), [activePose])
 
-  // Wobble: translate up to 2 px, rotate up to 1 deg, scale 1 to 1.01 by magnitude.
   const translateX = useTransform(x, (value) => value * 2)
   const translateY = useTransform(y, (value) => value * 2)
   const scale = useTransform(
     [x, y],
     ([valueX, valueY]: number[]) => 1 + Math.min(1, Math.hypot(valueX, valueY)) * 0.01,
   )
-
-  // Pixel filter: always on, redraw on Pose change and on resize.
-  useEffect(() => {
-    let cancelled = false
-    let cleanup = () => {}
-
-    if (!effectsEnabled) return
-
-    loadPose(pose)
-      .then((image) => {
-        if (cancelled) return
-        const draw = () => {
-          const frame = container.current
-          const target = filter.current
-          if (!frame || !target) return
-          drawPixelFilter(target, image, frame.clientWidth)
-        }
-        draw()
-        window.addEventListener('resize', draw)
-        cleanup = () => window.removeEventListener('resize', draw)
-      })
-      .catch(() => {})
-
-    return () => {
-      cancelled = true
-      cleanup()
-    }
-  }, [effectsEnabled, pose])
-
-  // Hover overlay: draw the active Pose on enter, on Pose change, on resize, and on an
-  // interval with a random source offset. Reduced motion draws once and skips the flicker.
-  useEffect(() => {
-    if (!effectsEnabled || !hovered) return
-
-    let cancelled = false
-    let timer: number | undefined
-
-    loadPose(pose)
-      .then((image) => {
-        if (cancelled) return
-        const draw = () => {
-          const frame = container.current
-          const target = canvas.current
-          if (!frame || !target) return
-          drawPixelOverlay(target, image, frame.clientWidth, !reduced)
-        }
-        draw()
-        setDrawn(true)
-        window.addEventListener('resize', draw)
-        if (!reduced) timer = window.setInterval(draw, FLICKER_MS)
-        cleanup = () => {
-          window.clearInterval(timer)
-          window.removeEventListener('resize', draw)
-        }
-      })
-      .catch(() => {})
-
-    let cleanup = () => {}
-    return () => {
-      cancelled = true
-      cleanup()
-    }
-  }, [effectsEnabled, hovered, pose, reduced])
-
-  const activePose = effectsEnabled ? pose : 'center'
 
   return (
     <button
@@ -116,51 +62,19 @@ function CursorAvatar({ expanded, controlsId, onToggle }: CursorAvatarProps) {
       aria-controls={controlsId}
       aria-label={expanded ? 'Fold the profile card' : 'Unfold the profile card'}
       onClick={onToggle}
-      className="block aspect-square w-full cursor-pointer overflow-hidden rounded-[22px] bg-[#e9e9e6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      onPointerEnter={() => {
-        if (effectsEnabled && !window.matchMedia('(pointer: coarse)').matches) setHovered(true)
-      }}
-      onPointerLeave={() => {
-        setHovered(false)
-        setDrawn(false)
-      }}
+      className="ascii-avatar-button block aspect-square w-full cursor-pointer overflow-hidden rounded-[22px] bg-[#e9e9e6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <motion.div
         className="relative size-full"
         style={reduced || !effectsEnabled ? undefined : { x: translateX, y: translateY, rotate: x, scale }}
       >
-        {POSES.map((name) => (
-          <img
-            key={name}
-            src={poseSrc(name)}
-            alt={name === 'center' ? 'Pixelated portrait of Emil Vladinov' : ''}
-            width={370}
-            height={370}
-            fetchPriority={name === 'center' ? 'high' : undefined}
-            className="absolute inset-0 size-full object-cover"
-            style={{ visibility: name === activePose ? 'visible' : 'hidden' }}
-          />
-        ))}
-        {effectsEnabled && (
-          <>
-            <canvas
-              ref={filter}
-              aria-hidden
-              className="pointer-events-none absolute inset-0 size-full"
-              style={{ imageRendering: 'pixelated' }}
-            />
-            <canvas
-              ref={canvas}
-              aria-hidden
-              className="pointer-events-none absolute inset-0 size-full"
-              style={{
-                imageRendering: 'pixelated',
-                opacity: hovered && drawn ? 1 : 0,
-                transition: reduced ? 'none' : FADE,
-              }}
-            />
-          </>
-        )}
+        <pre
+          aria-hidden="true"
+          data-pose={activePose}
+          className={`ascii-avatar${effectsEnabled ? ' ascii-avatar--active' : ''}`}
+        >
+          {glyphs}
+        </pre>
       </motion.div>
     </button>
   )

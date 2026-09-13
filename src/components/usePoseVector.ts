@@ -15,11 +15,6 @@ export const POSES = [
 
 export type Pose = (typeof POSES)[number]
 
-/** Path of the WebP image for a Pose. */
-export function poseSrc(pose: Pose) {
-  return `/avatar/pose-${pose}.webp`
-}
-
 // Unit vectors in screen space. Y points down, so Up is [0, -1].
 const DIAGONAL = Math.SQRT1_2
 const DIRECTIONS: ReadonlyArray<readonly [Pose, number, number]> = [
@@ -102,7 +97,6 @@ export function usePoseVector(container: RefObject<HTMLElement | null>, enabled 
       return
     }
 
-    let cancelled = false
     const coarse = window.matchMedia('(pointer: coarse)').matches
 
     const onMove = (event: PointerEvent) => {
@@ -131,26 +125,15 @@ export function usePoseVector(container: RefObject<HTMLElement | null>, enabled 
       idle = window.setTimeout(reset, SCROLL_IDLE_MS)
     }
 
-    // Decode all nine Poses before tracking starts, so a swap never shows a blank image.
-    Promise.allSettled(
-      POSES.map((pose) => {
-        const image = new Image()
-        image.src = poseSrc(pose)
-        return image.decode()
-      }),
-    ).then(() => {
-      if (cancelled) return
-      if (coarse) {
-        window.addEventListener('scroll', onScroll, { passive: true })
-        return
-      }
+    if (coarse) {
+      window.addEventListener('scroll', onScroll, { passive: true })
+    } else {
       window.addEventListener('pointermove', onMove, { passive: true })
       document.documentElement.addEventListener('pointerleave', reset)
       window.addEventListener('blur', reset)
-    })
+    }
 
     return () => {
-      cancelled = true
       window.clearTimeout(idle)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('pointermove', onMove)

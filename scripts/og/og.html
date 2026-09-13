@@ -5,11 +5,7 @@
     <title>Open Graph card</title>
     <!--
       Layout source of truth for public/og.png, 1200 by 630 px.
-      Capture by hand with the Playwright MCP: serve the repo with `npm run dev`,
-      open /scripts/og/og.html, resize to 1200 by 630 at device scale 1, then
-      screenshot to .scratch/shots/og.png. Place the file with `node scripts/og.mjs`.
-      Tokens copy src/index.css. The pixel filter copies drawPixelFilter in
-      src/components/pixelOverlay.ts.
+      Use ?avatar=1 at 512 by 512 px to produce public/avatar/ascii-center.png.
     -->
     <style>
       @font-face {
@@ -20,12 +16,20 @@
         src: url(/fonts/InterVariable.woff2) format("woff2");
       }
 
+      @font-face {
+        font-family: "Cascadia Mono";
+        font-style: normal;
+        font-weight: 200 700;
+        font-display: block;
+        src: url(/fonts/CascadiaMono.woff2) format("woff2");
+      }
+
       :root {
         --color-bg: #fafaf9;
         --color-text: #18181b;
         --color-muted: #6b6b70;
         --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
-        --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+        --font-mono: "Cascadia Mono", ui-monospace, monospace;
       }
 
       html,
@@ -48,65 +52,93 @@
       }
 
       .headline {
-        /* Narrow enough to wrap the headline onto three lines. */
         width: 420px;
         margin: 0;
+        color: var(--color-text);
         font-size: 64px;
         font-weight: 700;
-        line-height: 1.1;
         letter-spacing: -0.02em;
-        color: var(--color-text);
+        line-height: 1.1;
       }
 
       .byline {
         margin: 32px 0 0;
+        color: var(--color-muted);
         font-family: var(--font-mono);
         font-size: 22px;
         line-height: 1.4;
-        color: var(--color-muted);
       }
 
       .pose {
+        position: relative;
         flex: none;
         width: 400px;
         height: 400px;
+        overflow: hidden;
         border-radius: 40px;
-        display: block;
-        image-rendering: pixelated;
+        color: #262629;
+        background: #e9e9e6;
+      }
+
+      .pose pre {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 9.8px;
+        font-weight: 500;
+        font-variant-ligatures: none;
+        letter-spacing: 0;
+        line-height: 1;
+        transform: translate(-50%, -50%);
+        white-space: pre;
+      }
+
+      .avatar-only .card,
+      .avatar-only .pose {
+        width: 512px;
+        height: 512px;
+      }
+
+      .avatar-only .card {
+        padding: 0;
+      }
+
+      .avatar-only .copy {
+        display: none;
+      }
+
+      .avatar-only .pose {
+        border-radius: 0;
+      }
+
+      .avatar-only .pose pre {
+        font-size: 12.5px;
       }
     </style>
   </head>
   <body>
     <div class="card">
-      <div>
+      <div class="copy">
         <h1 class="headline">Real software, built with AI agents.</h1>
         <p class="byline">Emil Vladinov &#183; Software engineer in Copenhagen</p>
       </div>
-      <canvas class="pose" id="pose" width="200" height="200"></canvas>
+      <div class="pose"><pre id="pose" aria-label="ASCII portrait of Emil Vladinov"></pre></div>
     </div>
-    <script>
-      // Full-colour pixel filter, 2 px cells at the frame size. Always on.
-      const FILTER_CELL_PX = 2;
-      const FLICKER_OFFSET_PX = 3;
-      const POSE_WIDTH_PX = 400;
+    <script type="module">
+      import { ASCII_POSES } from "/src/components/asciiPoses.ts";
 
-      function drawPixelFilter(canvas, image, widthPx) {
-        const cells = Math.round(widthPx / FILTER_CELL_PX);
-        canvas.width = cells;
-        canvas.height = cells;
-        const context = canvas.getContext("2d", { willReadFrequently: true });
-        const sourceSize =
-          Math.min(image.naturalWidth, image.naturalHeight) - FLICKER_OFFSET_PX;
-        context.imageSmoothingEnabled = false;
-        context.drawImage(image, 0, 0, sourceSize, sourceSize, 0, 0, cells, cells);
+      if (new URLSearchParams(location.search).has("avatar")) {
+        document.body.classList.add("avatar-only");
       }
 
-      const image = new Image();
-      image.src = "/avatar/pose-center.webp";
-      Promise.all([image.decode(), document.fonts.ready]).then(() => {
-        drawPixelFilter(document.getElementById("pose"), image, POSE_WIDTH_PX);
-        document.documentElement.dataset.ready = "true";
-      });
+      document.getElementById("pose").textContent = ASCII_POSES.center;
+      await Promise.all([
+        document.fonts.load('500 12px "Cascadia Mono"'),
+        document.fonts.load('700 64px "Inter"'),
+      ]);
+      document.documentElement.dataset.ready = "true";
     </script>
   </body>
 </html>

@@ -30,7 +30,7 @@ const structuredData = {
       description:
         'Real software, built with AI agents. The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. Software engineer in Copenhagen.',
       url: SITE_URL,
-      image: `${SITE_URL}avatar/pose-center.webp`,
+      image: `${SITE_URL}avatar/ascii-center.png`,
       email: site.email,
       address: {
         '@type': 'PostalAddress',

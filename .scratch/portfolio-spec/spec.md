@@ -159,13 +159,13 @@ Source: [Cursor Avatar port](https://github.com/emkataumre/portfolio/issues/3), 
 
 ### 6.1 Assets
 
-Nine WebP files, 370 by 370 px, quality 80, about 125 KB in total. Source of truth: `.scratch/portfolio-spec/assets/poses/pose-<name>.webp`. Names: `center`, `up`, `down`, `left`, `right`, `up-left`, `up-right`, `down-left`, `down-right`. The build copies them to `public/avatar/`. No larger source exists. No re-export.
+Nine fixed ASCII grids are generated from the source photos and stored in `src/components/asciiPoses.ts`. The source photos remain in `.scratch/portfolio-spec/assets/poses/` and Git history. The deployed site does not include them. Names: `center`, `up`, `down`, `left`, `right`, `up-left`, `up-right`, `down-left`, `down-right`.
 
-Preload only `pose-center.webp` in the head with `fetchpriority="high"`. Decode all nine on mount with `Image().decode()` before tracking starts.
+The portrait uses the bundled Cascadia Mono variable font. Preload `CascadiaMono.woff2` in the head.
 
 ### 6.2 Component contract
 
-The profile card owns its open state and passes it to `CursorAvatar`. The collapsed shell is 280 px square on desktop and 220 px under 760 px, with a 28 px radius, 1 px border, and 8 px padding. The photo is a native button with a 22 px radius, `aria-expanded`, and `aria-controls`. Click, Enter, or Space toggles the card. Render the nine images stacked. The active one has `visibility: visible`, and the rest are hidden. The Center image carries `alt="Pixelated portrait of Emil Vladinov"`, and the others carry `alt=""`.
+The profile card owns its open state and passes it to `CursorAvatar`. The collapsed shell is 280 px square on desktop and 220 px under 760 px, with a 28 px radius, 1 px border, and 8 px padding. The portrait is a native button with a 22 px radius, `aria-expanded`, and `aria-controls`. Click, Enter, or Space toggles the card. Render the active ASCII Pose as decorative text. The button supplies the accessible name.
 
 ### 6.3 Tracking
 
@@ -175,22 +175,9 @@ The profile card owns its open state and passes it to `CursorAvatar`. The collap
 - Pose selection in `useMotionValueEvent` on the smoothed values: dot score against the eight unit vectors. Threshold 0.8, dead zone 0.25 for Center, hysteresis 0.05 before a swap.
 - Wobble on the smoothed vector through `useTransform`: translate 2 px, rotate 1 deg, scale 1 to 1.01.
 
-### 6.4 Hover pixel overlay
+### 6.4 Line Tide
 
-Changed on 2026-09-03 from a permanent filter to a hover effect. Source: [Cursor Avatar: hover pixel overlay](https://github.com/emkataumre/portfolio/issues/19).
-
-Off hover the Reader sees the active Pose behind a full-colour pixel filter with 2 px cells. While the pointer hovers the frame, a two-colour pixel version of the active Pose fades in over it and flickers. On leave it fades out.
-
-- Pixel filter: one `canvas` above the nine images, `image-rendering: pixelated`, `aria-hidden`. Cells of 2 px, 140 by 140 at 280 px, 110 by 110 at 220 px. Redraw on Pose change and on resize. Always on. Emil brought the filter back at 2 px on 2026-09-03 after seeing the hover overlay alone.
-
-- One overlay `canvas` above the nine images, `pointer-events: none`, `image-rendering: pixelated`, `aria-hidden`.
-- Grid: 28 by 28 cells at 280 px, 22 by 22 at 220 px. Square cells of 10 px.
-- Two colours, luminance threshold 128, no dithering: `accent` for dark cells, `bg` for light cells.
-- Draw on `pointerenter`, on Pose change while hovered, and on resize. Flicker: redraw every 300 ms with a random 0 to 3 px source offset.
-- Fade 0.4 s with the site easing.
-- Coarse pointer: no overlay.
-
-The OG image and the favicon keep the pixel look as a brand mark. The Center alt text stays "Pixelated portrait of Emil Vladinov". Decided 2026-09-03.
+On a fine pointer, hover sends a staggered vertical wave through a deterministic subset of visible glyphs. Each wave changes the glyph from ink to accent to muted, then returns it to ink. The cycle lasts 1.25 seconds. Coarse pointers do not run the effect. Reduced motion disables the spatial wave and uses a static accent colour.
 
 ### 6.5 Touch
 
@@ -273,7 +260,7 @@ The title keeps the headline and puts the name last. "Copenhagen" and "Claude Co
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preload" as="image" href="/avatar/pose-center.webp" fetchpriority="high">
+<link rel="preload" as="font" href="/fonts/CascadiaMono.woff2" type="font/woff2" crossorigin>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Emil Vladinov">
 <meta property="og:url" content="https://portfolio-2mj.pages.dev/">
@@ -282,12 +269,12 @@ The title keeps the headline and puts the name last. "Copenhagen" and "Claude Co
 <meta property="og:image" content="https://portfolio-2mj.pages.dev/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Real software, built with AI agents. A pixelated portrait of Emil Vladinov beside the headline.">
+<meta property="og:image:alt" content="Real software, built with AI agents. An ASCII portrait of Emil Vladinov beside the headline.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Real software, built with AI agents · Emil Vladinov">
 <meta name="twitter:description" content="Software engineer in Copenhagen. I ship real software with AI coding agents such as Claude Code. Small steps, tests, review, runtime verification.">
 <meta name="twitter:image" content="https://portfolio-2mj.pages.dev/og.png">
-<meta name="twitter:image:alt" content="Real software, built with AI agents. A pixelated portrait of Emil Vladinov beside the headline.">
+<meta name="twitter:image:alt" content="Real software, built with AI agents. An ASCII portrait of Emil Vladinov beside the headline.">
 ```
 
 ### 9.4 Structured data
@@ -321,7 +308,7 @@ One JSON-LD script in the head of the home page. Google's policy: mark up only w
       "jobTitle": "Software engineer",
       "description": "Real software, built with AI agents. The agents write the code. The engineering does not change: small steps, tests, review, and runtime verification. Software engineer in Copenhagen.",
       "url": "https://portfolio-2mj.pages.dev/",
-      "image": "https://portfolio-2mj.pages.dev/avatar/pose-center.webp",
+      "image": "https://portfolio-2mj.pages.dev/avatar/ascii-center.png",
       "email": "emo.vladinov@gmail.com",
       "address": {
         "@type": "PostalAddress",
@@ -434,7 +421,7 @@ The verification file stays in the repo.
 
 ### 9.11 Alt text and links
 
-- Cursor Avatar, Center image: `alt="Pixelated portrait of Emil Vladinov"`. Section 6.2 uses the same value. The other eight images keep `alt=""`. The frame keeps `aria-label="Emil Vladinov"`.
+- Cursor Avatar: the ASCII text is decorative. The button supplies the profile-card action label.
 - OG image: the `og:image:alt` value in 9.3. Under 420 characters, the X limit.
 - Footer GitHub and LinkedIn links carry `rel="me"`. GitHub links back with `rel="nofollow me"`.
 - Language: `<html lang="en">`. No `hreflang`. The site has one language.

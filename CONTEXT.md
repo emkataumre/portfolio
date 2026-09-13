@@ -9,11 +9,11 @@ The person the site is written for: an engineering lead or senior peer who judge
 _Avoid_: Visitor, user, audience
 
 **Cursor Avatar**:
-The hero element. A real headshot that swaps between nine pre-shot Poses so the face looks toward the cursor.
-_Avoid_: Following avatar, 3D avatar, tracking photo
+The hero element. An ASCII portrait that swaps between nine Poses so the face looks toward the cursor.
+_Avoid_: Following avatar, 3D avatar, tracking portrait
 
 **Pose**:
-One of the nine head-direction photos of the Cursor Avatar: Center, Left, Right, Up, Down, and the four diagonals.
+One of the nine head directions of the Cursor Avatar: Center, Left, Right, Up, Down, and the four diagonals.
 _Avoid_: Frame, sprite, direction image
 
 **Working Method**:
