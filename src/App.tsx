@@ -26,9 +26,9 @@ function App() {
       >
         <SelectedWork />
       </Section>
-      <Section id="activity" label="Activity">
+      <section id="activity" className="mt-24">
         <ActivityGrid />
-      </Section>
+      </section>
     </Page>
   )
 }

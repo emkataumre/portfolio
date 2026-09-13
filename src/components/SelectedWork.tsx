@@ -4,22 +4,22 @@ import Rule from './Rule'
 
 const entries = [
   {
-    title: 'Tasks: turn an insight into work someone owns.',
-    body: 'Any finding in the product becomes a task with an owner, a due date, and a state. Tasks show up on seven grid views and one My Tasks page, and the right people get mail when something changes. Built alone, end to end.',
-    scale: '21k lines · 154 files',
-    status: 'In final review for the September release',
+    title: 'Tasks: turn static data into actionable work.',
+    body: 'Any finding in the product becomes a task with an owner, a due date, and a state. Tasks show up on seven grid views and one My Tasks page, and the right people get mail when something changes. Built solo, end to end.',
+    scale: '21 000+ lines across 154 files',
+    status: 'In final review for the September release.',
   },
   {
     title: 'Mentions: @ a colleague, # a record.',
-    body: 'Type @ to bring a colleague into a comment or task, # to link the record it is about. Search ranks the match as you type. One composer serves comments and tasks.',
-    scale: '5k lines',
-    status: 'In final review',
+    body: 'Type @ to bring a colleague into a comment or task, # to link the record it is about. Search ranks the match as you type.',
+    scale: '5 000+',
+    status: 'In final review for the September release.',
   },
   {
-    title: 'This site.',
-    body: 'Planned and built with the same method, in public. Every decision is in the public repo.',
-    scale: 'Vite, React, Framer Motion',
-    status: 'Public repo',
+    title: 'This website',
+    body: 'Planned and built using the same method. Mostly made from my phone :)',
+    scale: '2 000+',
+    status: '',
   },
 ]
 
@@ -41,7 +41,7 @@ function SelectedWork() {
             </div>
             <div className="font-mono text-[0.8125rem] min-[760px]:text-right">
               <p className="font-medium">{scale}</p>
-              <p className="mt-0.5 text-muted">{status}</p>
+              {status && <p className="mt-0.5 text-muted">{status}</p>}
             </div>
           </Reveal>
           {index === entries.length - 1 && <Rule drawIndex={entries.length} />}

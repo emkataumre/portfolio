@@ -17,10 +17,16 @@ function Page({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-bg font-sans text-text">
       <div className={reduced ? undefined : 'relative z-10 min-h-screen bg-bg'}>
-        <div className={`mx-auto max-w-[1040px] px-8 pt-12 ${reduced ? '' : 'pb-30'}`}>
-          <Nav />
-          <main>{children}</main>
-          {reduced && <Footer id="contact" />}
+        <div
+          className={`mx-auto grid max-w-[1240px] gap-x-12 px-6 pt-8 min-[900px]:grid-cols-[152px_minmax(0,1040px)] min-[900px]:px-8 min-[900px]:pt-12 ${reduced ? '' : 'pb-30'}`}
+        >
+          <aside className="relative z-30 self-start min-[900px]:sticky min-[900px]:top-12">
+            <Nav />
+          </aside>
+          <div className="min-w-0">
+            <main>{children}</main>
+            {reduced && <Footer id="contact" />}
+          </div>
         </div>
       </div>
       {!reduced && <div ref={footerTarget} id="contact" className="h-32" />}

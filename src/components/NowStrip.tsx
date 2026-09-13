@@ -3,11 +3,11 @@ import Reveal from './Reveal'
 const entries = [
   {
     label: 'Now',
-    text: 'Software engineer at Inact. I use agentic coding to land large features fast in a large legacy codebase.',
+    text: 'Software engineer at Inact. I use agentic coding to land large features quickly and reliably in a large legacy codebase.',
   },
   {
-    label: 'In parallel',
-    text: 'At Solution 8 I work in a team that runs on agentic workflows: shared skills, shared conventions, agent-written code reviewed by peers. We build internal tools and open source material on agentic programming.',
+    label: 'Also',
+    text: 'At Solution 8 I worked in a team that runs on agentic workflows: we used shared skills, shared conventions, and shipped agent-written code reliably. We also built internal productivity boosting tools and open sourced material on agentic development.',
   },
 ]
 
