@@ -7,23 +7,23 @@ const PLAY_FILL = 0.92
 const principles = [
   {
     title: 'Plan first',
-    body: 'Every feature starts as a map of decisions. No code until the questions have answers.',
+    body: 'Every feature starts as a map of decisions, both architectural and behavioral.',
   },
   {
     title: 'Argue the plan',
-    body: 'The agent interrogates the plan before it builds. Weak ideas die on paper.',
+    body: 'Agents interrogate the plan before it gets promoted. Weak ideas and shaky architecture die in this phase.',
   },
   {
     title: 'Small steps with tests',
-    body: 'One change at a time. A failing test first, where the codebase allows it.',
+    body: 'Features are implemented and tested incrementally, adhering to thorough agenting coding verification concepts.',
   },
   {
     title: 'Review in passes',
-    body: 'Security, dead code, duplication, error handling. Each pass runs in a fresh context.',
+    body: 'Security, dead code, duplication, error handling. Each error caught is surfaced back up the pipeline for fixes and re-review.',
   },
   {
     title: 'Verify at runtime',
-    body: 'The agent drives the app and queries the database before it says "done".',
+    body: 'The agents drive the app, query, the database, exercise the API and attempt to break the new code. Edge-cases surface here and are propped up the pipeline for fixes and re-review.',
   },
 ]
 
@@ -88,7 +88,7 @@ function WorkingMethod() {
     <>
       <div className="min-[760px]:col-start-2">
       <Reveal as="p" className="mb-7 text-muted">
-        At Inact, this method has put about 21k lines of agent-written code through senior
+        At Inact, this method has put about 30,000 lines of agent-written code through senior
         review.
       </Reveal>
       <div className="grid gap-x-8 gap-y-7 min-[760px]:grid-cols-2">
@@ -307,12 +307,12 @@ function WorkingMethod() {
         </section>
       </Reveal>
       <Reveal as="p" className="mt-6 text-muted min-[760px]:col-start-2 min-[760px]:mt-0">
-        The team version of this method is public:{' '}
+        A version of this workflow, aimed towards software engineering teams can be found{' '}
         <a
           href="https://github.com/solution8-com/agentic-playbook"
           className="text-accent underline-offset-2 hover:underline"
         >
-          the Solution 8 agentic playbook
+          here
         </a>
         .
       </Reveal>

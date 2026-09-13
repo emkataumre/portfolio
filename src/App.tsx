@@ -11,13 +11,18 @@ function App() {
     <Page>
       <Hero />
       <NowStrip />
-      <Section id="method" label="Working Method" subline="How agent code gets to main" wideContent>
+      <Section
+        id="method"
+        label="Working Method"
+        subline="My own, refined way of working that gets agent code from a plan through to production."
+        wideContent
+      >
         <WorkingMethod />
       </Section>
       <Section
         id="work"
         label="Selected Work"
-        subline="Inact, 2026. A legacy Go and React monorepo, 415k lines."
+        subline="Inact, 2026. A legacy Go and React codebase. 400 000+ lines."
       >
         <SelectedWork />
       </Section>
