@@ -4,7 +4,7 @@ import activity from '../activity/activity.json'
 import { EASE } from './ease'
 import Reveal from './Reveal'
 
-const WINDOW_DAYS = 30
+const WINDOW_DAYS = 120
 const GRID_ROWS = 3
 
 const mix = (percent: number) =>
@@ -55,6 +55,8 @@ function ActivityGrid() {
   const commitTotal = counts.reduce((sum, count) => sum + count, 0)
   const maximum = Math.max(1, ...counts)
   const columns = Math.ceil(indexes.length / GRID_ROWS)
+  const gridWidth = columns * 14 - 3
+  const gridHeight = GRID_ROWS * 14 - 3
   const tabStop = visited ?? start
 
   const move = (from: number, delta: number) => {
@@ -83,7 +85,7 @@ function ActivityGrid() {
     <Reveal className="mx-auto w-full max-w-[720px] border-y border-line px-4 py-6">
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
         <h2 id={titleId} className="text-lg font-semibold tracking-[-0.02em]">
-          {commitTotal} commits in 30 days
+          {commitTotal} commits in 4 months
         </h2>
         <p
           className="flex items-center gap-1.5 font-mono text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-accent"
@@ -96,7 +98,7 @@ function ActivityGrid() {
       </div>
 
       <p id={hintId} className="sr-only">
-        Rolling 30-day view. Use the arrow keys to move between days.
+        Rolling 4-month view. Use the arrow keys to move between days.
       </p>
 
       <div className="mt-4 min-w-0">
@@ -106,8 +108,10 @@ function ActivityGrid() {
           aria-describedby={hintId}
           className="grid justify-center gap-[3px] [grid-auto-flow:column]"
           style={{
-            gridTemplateColumns: `repeat(${columns}, 11px)`,
-            gridTemplateRows: `repeat(${GRID_ROWS}, 11px)`,
+            width: `min(100%, ${gridWidth}px)`,
+            aspectRatio: `${gridWidth} / ${gridHeight}`,
+            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${GRID_ROWS}, minmax(0, 1fr))`,
           }}
         >
           {indexes.map((index, offset) => (
