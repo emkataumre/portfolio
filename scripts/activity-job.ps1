@@ -185,8 +185,8 @@ if (-not (Invoke-Git -Arguments @('-c', 'user.name=activity-bot', '-c', 'user.em
 
 # A failed push can be a rejection, a lost network, or a token that expired.
 # Log the reason that git gave. Do not retry, do not run the collector again,
-# and never force. Every GitHub number is rebuilt from scratch, so the next run
-# makes the same result again.
+# and never force. The next run fetches the GitHub snapshot again and preserves
+# the commit ledger from the last published file.
 # The push carries the token in one request header. A credential helper would
 # need a shell, and the shell that git starts on this machine cannot run a
 # Windows path. The token stays in memory and reaches no file.

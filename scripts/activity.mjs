@@ -129,13 +129,13 @@ function previousWindow(previous) {
 // Maps a previous file back to its day keys. Counts that the file holds but
 // that no day key can carry are a fault, not an empty file. The run stops
 // rather than drop them, because the sessions are the only copy of that data.
-function previousByDay(previous, values) {
+function previousByDay(previous, values, valueName) {
   const byDay = new Map();
   if (values === undefined || values === null) return byDay;
   const days = previousWindow(previous);
   if (!Array.isArray(values) || values.length !== days.length || !values.every(Number.isInteger)) {
     throw new Error(
-      `the previous activity.json holds sessions that are not ${WINDOW_DAYS} whole day counts, so no day can carry forward`,
+      `the previous activity.json holds ${valueName} that are not ${WINDOW_DAYS} whole day counts, so no day can carry forward`,
     );
   }
   for (const [index, day] of days.entries()) byDay.set(day, values[index]);
@@ -148,8 +148,16 @@ function previousByDay(previous, values) {
 // already emptied must never overwrite the value the ledger holds. A day count
 // only ever grows while the day runs, so the larger value is the true one.
 export function mergeSessions(days, byDay, previous) {
-  const carried = previousByDay(previous, previous?.sessions);
+  const carried = previousByDay(previous, previous?.sessions, 'sessions');
   return days.map((day) => Math.max(byDay.get(day)?.size ?? 0, carried.get(day) ?? 0));
+}
+
+// A deleted repository must not erase commits that an earlier collection
+// recorded. A day can gain commits while it is in the window, but cannot lose
+// work that already happened.
+export function mergeCommits(days, collected, previous) {
+  const carried = previousByDay(previous, previous?.commits, 'commits');
+  return days.map((day, index) => Math.max(collected[index] ?? 0, carried.get(day) ?? 0));
 }
 
 // Returns the run of consecutive active days that ends today or yesterday, and
@@ -361,16 +369,17 @@ export function main() {
   const previous = readPrevious();
   const sessions = mergeSessions(days, readSessionHistory(), previous);
   const github = collectGitHub(days);
+  const commits = mergeCommits(days, github.commits, previous);
   const activity = {
     generatedAt: new Date().toISOString(),
     timeZone: TIME_ZONE,
     days: { from, to },
-    commits: github.commits,
+    commits,
     sessions,
     streak: computeStreak(days, sessions),
     counters: {
       since: from,
-      commits: github.commits.reduce((sum, n) => sum + n, 0),
+      commits: commits.reduce((sum, n) => sum + n, 0),
       linesAdded: github.linesAdded,
       linesRemoved: github.linesRemoved,
       pullRequestsMerged: github.pullRequestsMerged,

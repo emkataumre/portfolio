@@ -53,6 +53,7 @@ function ActivityGrid() {
   const indexes = Array.from({ length: total - start }, (_, offset) => start + offset)
   const counts = indexes.map((index) => activity.commits[index])
   const commitTotal = counts.reduce((sum, count) => sum + count, 0)
+  const displayedCommitTotal = commitTotal > 700 ? '700+' : commitTotal
   const maximum = Math.max(1, ...counts)
   const columns = Math.ceil(indexes.length / GRID_ROWS)
   const gridWidth = columns * 14 - 3
@@ -85,7 +86,7 @@ function ActivityGrid() {
     <Reveal className="mx-auto w-full max-w-[720px] border-y border-line px-4 py-6">
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
         <h2 id={titleId} className="text-lg font-semibold tracking-[-0.02em]">
-          {commitTotal} commits in 4 months
+          {displayedCommitTotal} commits in 4 months
         </h2>
         <p
           className="flex items-center gap-1.5 font-mono text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-accent"
