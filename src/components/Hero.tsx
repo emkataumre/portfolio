@@ -33,7 +33,7 @@ function Hero() {
     <section
       ref={heroRef}
       id="overview"
-      className="mt-16 grid scroll-mt-8 grid-cols-1 items-center gap-14 min-[760px]:mt-22 min-[760px]:grid-cols-[1.3fr_1fr]"
+      className="mt-8 grid scroll-mt-8 grid-cols-1 items-center gap-14 min-[760px]:mt-12 min-[760px]:grid-cols-[1.3fr_1fr]"
     >
       <div>
         <Reveal
