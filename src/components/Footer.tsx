@@ -1,60 +1,90 @@
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { motion, useScroll, useTransform } from 'motion/react'
+import { useEffect, useRef, type RefObject } from 'react'
 import './Footer.css'
 
 const SURFACE =
-  'flex h-32 items-center justify-center bg-[#1d1f20] bg-[radial-gradient(circle,rgba(255,255,255,0.16)_1px,transparent_1px)] bg-[length:11px_11px] text-stone-50'
+  'footer-surface flex h-32 items-center justify-center text-stone-50'
 
-function FooterContent({ active = true }: { active?: boolean }) {
-  const reflection = useRef<HTMLSpanElement>(null)
-  const reduced = useReducedMotion()
+const QUOTE = '“The proof is in what ships.”'
+
+function useFooterSignal() {
+  const surface = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (!active || reduced || !reflection.current) return
-    const animation = reflection.current.animate(
-      [
-        { backgroundPosition: '100% 50%', offset: 0 },
-        { backgroundPosition: '0% 50%', offset: 4.7 / 6.9 },
-        { backgroundPosition: '0% 50%', offset: 1 },
-      ],
-      { duration: 6900, iterations: Infinity, easing: 'linear' },
-    )
-    const visibility = () => document.hidden ? animation.pause() : animation.play()
-    visibility()
-    document.addEventListener('visibilitychange', visibility)
-    return () => {
-      animation.cancel()
-      document.removeEventListener('visibilitychange', visibility)
-    }
-  }, [active, reduced])
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const element = surface.current
+    if (!element) return
 
+    const relocateSignal = () => {
+      const x = 18 + Math.random() * 64
+      const y = 22 + Math.random() * 56
+      const x2 = Math.min(90, Math.max(10, x + (Math.random() - 0.5) * 24))
+      const y2 = Math.min(88, Math.max(12, y + (Math.random() - 0.5) * 34))
+      const x3 = Math.min(92, Math.max(8, x + (Math.random() - 0.5) * 34))
+      const y3 = Math.min(90, Math.max(10, y + (Math.random() - 0.5) * 42))
+      element.style.setProperty('--footer-signal-x', `${x}%`)
+      element.style.setProperty('--footer-signal-y', `${y}%`)
+      element.style.setProperty('--footer-signal-x-secondary', `${x2}%`)
+      element.style.setProperty('--footer-signal-y-secondary', `${y2}%`)
+      element.style.setProperty('--footer-signal-x-tertiary', `${x3}%`)
+      element.style.setProperty('--footer-signal-y-tertiary', `${y3}%`)
+    }
+
+    let relocateTimer = 0
+    let revealTimer = 0
+    const cycle = () => {
+      element.classList.add('footer-surface--relocating')
+      revealTimer = window.setTimeout(() => {
+        relocateSignal()
+        element.classList.remove('footer-surface--relocating')
+        relocateTimer = window.setTimeout(cycle, 3200 + Math.random() * 3000)
+      }, 820)
+    }
+
+    relocateTimer = window.setTimeout(cycle, 2800 + Math.random() * 2200)
+
+    return () => {
+      window.clearTimeout(relocateTimer)
+      window.clearTimeout(revealTimer)
+      element.classList.remove('footer-surface--relocating')
+    }
+  }, [])
+
+  return surface
+}
+
+function FooterContent() {
   return (
     <blockquote className="footer-quote text-[clamp(1.5rem,3vw,2rem)] leading-none font-semibold tracking-[-0.035em]">
-      <span>“The work is in the argument.”</span>
-      <span ref={reflection} className="footer-quote__reflection" aria-hidden="true">
-        “The work is in the argument.”
-      </span>
+      <span>{QUOTE}</span>
     </blockquote>
   )
 }
 
 function Footer({ id }: { id?: string }) {
+  const surface = useFooterSignal()
+
   return (
-    <footer id={id} className={`mt-30 ${SURFACE}`}>
+    <footer ref={surface} id={id} className={`mt-30 ${SURFACE}`}>
+      <span className="footer-signal" aria-hidden="true" />
       <FooterContent />
     </footer>
   )
 }
 
 export function FooterReveal({ target }: { target: RefObject<HTMLDivElement | null> }) {
+  const surface = useFooterSignal()
   const { scrollYProgress } = useScroll({ target, offset: ['start end', 'end end'] })
   const opacity = useTransform(scrollYProgress, [0, 1], [0, 1])
-  const [active, setActive] = useState(false)
-  useMotionValueEvent(scrollYProgress, 'change', (progress) => setActive(progress > 0))
 
   return (
-    <motion.footer className={`fixed inset-x-0 bottom-0 ${SURFACE}`} style={{ opacity }}>
-      <FooterContent active={active} />
+    <motion.footer
+      ref={surface}
+      className={`fixed inset-x-0 bottom-0 ${SURFACE}`}
+      style={{ opacity }}
+    >
+      <span className="footer-signal" aria-hidden="true" />
+      <FooterContent />
     </motion.footer>
   )
 }
