@@ -121,7 +121,7 @@ function WorkingMethod() {
         </div>
       </Reveal>
       </div>
-      <Reveal as="div" className="hidden min-[760px]:col-span-2 min-[760px]:mt-0 min-[760px]:block">
+      <Reveal as="div" className="min-[760px]:col-span-2 min-[760px]:mt-0">
         <section aria-labelledby="workflow-title">
           <div className="border-b border-line pb-3">
             <h3 id="workflow-title" className="text-base font-semibold tracking-[-0.01em]">
@@ -129,130 +129,130 @@ function WorkingMethod() {
             </h3>
           </div>
 
-          <svg
-            viewBox="0 0 976 530"
-            role="img"
-            aria-labelledby="workflow-map-title workflow-map-description"
-            className="mt-5 hidden w-full min-[760px]:block"
+          <div
+            className="mt-5 hidden overflow-hidden rounded-xl border border-line bg-surface p-7 min-[1100px]:block"
+            aria-label="Ship and Verify Feature workflow"
           >
-            <title id="workflow-map-title">Ship and Verify Feature workflow</title>
-            <desc id="workflow-map-description">
+            <p className="sr-only">
               Ship owns the path from brief through build and independent review. Verify Feature
               maps claims, plans coverage, attacks the runtime, and audits evidence. Pass returns to
               Ship for authorized delivery. Fail returns to Ship for repair and then verification.
               Blocked stops green delivery.
-            </desc>
-            <defs>
-              <marker id="workflow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                <path d="M0 0 8 4 0 8Z" className="fill-muted" />
-              </marker>
-              <marker id="workflow-arrow-accent" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                <path d="M0 0 8 4 0 8Z" className="fill-accent" />
-              </marker>
-            </defs>
+            </p>
 
-            <rect x="1" y="1" width="974" height="528" rx="12" className="fill-surface stroke-line" />
-            <g className="fill-none stroke-muted" strokeWidth="1.25" markerEnd="url(#workflow-arrow)">
-              <path d="M240 66H315" />
-              <path d="M525 66H600" />
-              <path d="M725 100V124H488V148" />
-            </g>
-
-            {shipStages.map(([title, body], index) => {
-              const x = [30, 315, 600][index]
-              const width = index === 2 ? 250 : 210
-              return (
-                <g key={title}>
-                  <rect x={x} y="32" width={width} height="68" rx="10" className="fill-bg stroke-line" />
-                  <text x={x + 16} y="58" className="fill-text text-[15px] font-semibold">
+            <ol className="grid grid-cols-3 gap-9" aria-label="Ship workflow">
+              {shipStages.map(([title, body], index) => (
+                <li
+                  key={title}
+                  className="relative min-h-24 rounded-xl border border-line bg-bg px-5 py-4"
+                >
+                  <h4 className="text-[0.9375rem] leading-5 font-semibold tracking-[-0.01em]">
                     {title}
-                  </text>
-                  <text x={x + 16} y="81" className="fill-muted text-[13px]">
-                    {body}
-                  </text>
-                </g>
-              )
-            })}
+                  </h4>
+                  <p className="mt-1 text-[0.8125rem] leading-5 text-muted">{body}</p>
+                  {index < shipStages.length - 1 && (
+                    <span aria-hidden="true">
+                      <span className="absolute top-1/2 left-full h-px w-9 bg-muted" />
+                      <span className="absolute top-1/2 -right-9 -translate-y-1/2 border-y-[4px] border-l-[6px] border-y-transparent border-l-muted" />
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
 
-            <g>
-              <rect x="30" y="150" width="916" height="154" rx="12" className="fill-accent-soft stroke-accent" />
-              <text x="54" y="177" className="fill-accent text-[12px] font-semibold tracking-[0.08em]">
-                VERIFY FEATURE
-              </text>
-              <text x="174" y="177" className="fill-muted text-[12px]">
-                independent adversarial check
-              </text>
-              <g className="fill-none stroke-accent" strokeWidth="1.25" markerEnd="url(#workflow-arrow-accent)">
-                <path d="M244 240H276" />
-                <path d="M470 240H502" />
-                <path d="M696 240H728" />
-              </g>
-              {verificationStages.map((stage, index) => {
-                const x = [54, 280, 506, 732][index]
-                const lines = [
-                  ['Map and atomize', 'claims'],
-                  ['Plan path', 'coverage'],
-                  ['Attack the', 'runtime'],
-                  ['Audit raw', 'evidence'],
-                ][index]
-                return (
-                  <g key={stage}>
-                    <rect x={x} y="198" width="190" height="84" rx="10" className="fill-surface stroke-line" />
-                    <circle cx={x + 18} cy="218" r="9" className="fill-accent-soft stroke-accent" />
-                    <text x={x + 18} y="222" textAnchor="middle" className="fill-accent text-[10px] font-semibold">
-                      {index + 1}
-                    </text>
-                    <text x={x + 14} y="248" className="fill-text text-[14px] font-semibold">
-                      <tspan x={x + 14}>{lines[0]}</tspan>
-                      <tspan x={x + 14} dy="19">{lines[1]}</tspan>
-                    </text>
-                  </g>
-                )
-              })}
-            </g>
+            <div className="relative h-10" aria-hidden="true">
+              <span className="absolute top-0 right-1/6 h-5 w-1/3 border-r border-b border-muted" />
+              <span className="absolute top-5 left-1/2 h-5 border-l border-muted" />
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 border-x-[4px] border-t-[6px] border-x-transparent border-t-muted" />
+            </div>
 
-            <path d="M488 304V319" className="fill-none stroke-muted" strokeWidth="1.25" markerEnd="url(#workflow-arrow)" />
-            <path d="M488 318 558 362 488 406 418 362Z" className="fill-bg stroke-text" strokeWidth="1.25" />
-            <text x="488" y="358" textAnchor="middle" className="fill-text text-[13px] font-semibold">
-              RESULT?
-            </text>
-            <text x="488" y="375" textAnchor="middle" className="fill-muted text-[10px]">
-              evidence decides
-            </text>
+            <div className="rounded-xl border border-accent bg-accent-soft p-5">
+              <div className="flex items-baseline gap-3">
+                <h4 className="text-sm font-semibold tracking-[-0.01em] text-accent">
+                  Verify Feature
+                </h4>
+                <p className="text-[0.8125rem] text-text/65">Independent adversarial check</p>
+              </div>
+              <ol className="mt-4 grid grid-cols-4 gap-4">
+                {verificationStages.map((stage, index) => (
+                  <li
+                    key={stage}
+                    className="relative flex min-h-24 flex-col gap-4 rounded-xl border border-line bg-surface p-4"
+                  >
+                    <span className="text-[0.6875rem] leading-none font-semibold tabular-nums text-accent">
+                      0{index + 1}
+                    </span>
+                    <span className="max-w-[9rem] text-[0.875rem] leading-[1.35] font-semibold tracking-[-0.01em]">
+                      {stage}
+                    </span>
+                    {index < verificationStages.length - 1 && (
+                      <span aria-hidden="true">
+                        <span className="absolute top-1/2 left-full h-px w-4 bg-accent" />
+                        <span className="absolute top-1/2 -right-4 -translate-y-1/2 border-y-[4px] border-l-[6px] border-y-transparent border-l-accent" />
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </div>
 
-            <g className="fill-none stroke-muted" strokeWidth="1.25" markerEnd="url(#workflow-arrow)">
-              <path d="M418 362H180V434" />
-              <path d="M488 406V434" />
-            </g>
-            <path d="M558 362H796V434" className="fill-none stroke-accent" strokeWidth="1.25" markerEnd="url(#workflow-arrow-accent)" />
+            <div className="relative mx-auto h-7 w-px bg-muted" aria-hidden="true">
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 border-x-[4px] border-t-[6px] border-x-transparent border-t-muted" />
+            </div>
 
-            <g>
-              <rect x="50" y="436" width="260" height="72" rx="10" className="fill-bg stroke-line" />
-              <text x="66" y="459" className="fill-text text-[11px] font-semibold tracking-[0.08em]">FAIL</text>
-              <text x="66" y="480" className="fill-text text-[14px] font-semibold">Ship reproduces and repairs</text>
-              <text x="66" y="499" className="fill-muted text-[11px]">Affected checks return to Verify</text>
+            <div className="relative h-36" aria-hidden="true">
+              <svg viewBox="0 0 900 144" preserveAspectRatio="none" className="absolute inset-0 size-full">
+                <defs>
+                  <marker id="workflow-branch-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M0 0 8 4 0 8Z" className="fill-muted" />
+                  </marker>
+                  <marker id="workflow-pass-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M0 0 8 4 0 8Z" className="fill-accent" />
+                  </marker>
+                </defs>
+                <path d="M450 91V105H150V142" className="fill-none stroke-muted" markerEnd="url(#workflow-branch-arrow)" />
+                <path d="M450 91V142" className="fill-none stroke-muted" markerEnd="url(#workflow-branch-arrow)" />
+                <path d="M450 105H750V142" className="fill-none stroke-accent" markerEnd="url(#workflow-pass-arrow)" />
+              </svg>
+              <div className="absolute top-1 left-1/2 flex size-16 -translate-x-1/2 rotate-45 items-center justify-center border border-text bg-bg">
+                <span className="-rotate-45 text-center text-[0.6875rem] leading-[1.25] font-semibold">
+                  Evidence
+                  <br />
+                  decides
+                </span>
+              </div>
+            </div>
 
-              <rect x="358" y="436" width="260" height="72" rx="10" className="fill-bg stroke-line" />
-              <text x="374" y="459" className="fill-muted text-[11px] font-semibold tracking-[0.08em]">BLOCKED</text>
-              <text x="374" y="480" className="fill-text text-[14px] font-semibold">No green delivery</text>
-              <text x="374" y="499" className="fill-muted text-[11px]">Missing proof stops the path</text>
+            <div className="grid grid-cols-3 gap-5">
+              <div className="rounded-xl border border-line bg-bg px-5 py-4">
+                <p className="text-[0.6875rem] font-semibold tracking-[0.08em]">FAIL</p>
+                <p className="mt-1 text-[0.9375rem] leading-5 font-semibold tracking-[-0.01em]">
+                  Ship reproduces and repairs
+                </p>
+                <p className="mt-1 text-[0.8125rem] leading-5 text-muted">
+                  Affected checks return to Verify
+                </p>
+              </div>
+              <div className="rounded-xl border border-line bg-bg px-5 py-4">
+                <p className="text-[0.6875rem] font-semibold tracking-[0.08em] text-muted">BLOCKED</p>
+                <p className="mt-1 text-[0.9375rem] leading-5 font-semibold tracking-[-0.01em]">
+                  No green delivery
+                </p>
+                <p className="mt-1 text-[0.8125rem] leading-5 text-muted">
+                  Missing proof stops the path
+                </p>
+              </div>
+              <div className="rounded-xl border border-accent bg-accent-soft px-5 py-4">
+                <p className="text-[0.6875rem] font-semibold tracking-[0.08em] text-accent">PASS</p>
+                <p className="mt-1 text-[0.9375rem] leading-5 font-semibold tracking-[-0.01em]">
+                  Ship finalizes and delivers
+                </p>
+                <p className="mt-1 text-[0.8125rem] leading-5 text-text/65">Only when authorized</p>
+              </div>
+            </div>
+          </div>
 
-              <rect x="666" y="436" width="260" height="72" rx="10" className="fill-accent-soft stroke-accent" />
-              <text x="682" y="459" className="fill-accent text-[11px] font-semibold tracking-[0.08em]">PASS</text>
-              <text x="682" y="480" className="fill-text text-[14px] font-semibold">Ship finalizes and delivers</text>
-              <text x="682" y="499" className="fill-muted text-[11px]">Only when authorized</text>
-            </g>
-
-            <path
-              d="M50 472H16V174H28"
-              className="fill-none stroke-muted"
-              strokeWidth="1.25"
-              strokeDasharray="4 4"
-              markerEnd="url(#workflow-arrow)"
-            />
-          </svg>
-
-          <div className="mt-5 rounded-xl border border-line bg-surface p-4 min-[760px]:hidden">
+          <div className="mt-5 rounded-xl border border-line bg-surface p-4 min-[1100px]:hidden">
             <ol aria-label="Ship workflow">
               {shipStages.map(([title, body]) => (
                 <li key={title} className="relative pb-8 pl-5 last:pb-7">
