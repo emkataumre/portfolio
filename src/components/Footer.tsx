@@ -1,29 +1,20 @@
 import { motion, useScroll, useTransform } from 'motion/react'
 import type { RefObject } from 'react'
-import { site } from '../site'
 
-const LAYOUT = 'flex flex-wrap items-center justify-between gap-x-7 gap-y-2 text-sm text-muted'
+const SURFACE =
+  'flex h-32 items-center justify-center bg-[#1d1f20] bg-[radial-gradient(circle,rgba(255,255,255,0.16)_1px,transparent_1px)] bg-[length:11px_11px] text-stone-50'
 
 function FooterContent() {
   return (
-    <>
-      <span>Emil Vladinov · Copenhagen</span>
-      <div className="flex flex-wrap gap-x-7 gap-y-2">
-        <a href={`mailto:${site.email}`}>{site.email}</a>
-        <a href={site.github} target="_blank" rel="me noopener noreferrer">
-          GitHub
-        </a>
-        <a href={site.linkedin} target="_blank" rel="me noopener noreferrer">
-          LinkedIn
-        </a>
-      </div>
-    </>
+    <blockquote className="text-[clamp(1.5rem,3vw,2rem)] leading-none font-semibold tracking-[-0.035em]">
+      “The work is the argument.”
+    </blockquote>
   )
 }
 
 function Footer({ id }: { id?: string }) {
   return (
-    <footer id={id} className={`mt-30 ${LAYOUT}`}>
+    <footer id={id} className={`mt-30 ${SURFACE}`}>
       <FooterContent />
     </footer>
   )
@@ -34,10 +25,7 @@ export function FooterReveal({ target }: { target: RefObject<HTMLDivElement | nu
   const opacity = useTransform(scrollYProgress, [0, 1], [0, 1])
 
   return (
-    <motion.footer
-      className={`fixed inset-x-0 bottom-0 h-32 ${LAYOUT} mx-auto max-w-[1040px] px-8`}
-      style={{ opacity }}
-    >
+    <motion.footer className={`fixed inset-x-0 bottom-0 ${SURFACE}`} style={{ opacity }}>
       <FooterContent />
     </motion.footer>
   )
