@@ -106,7 +106,7 @@ function ActivityGrid() {
           role="group"
           aria-labelledby={titleId}
           aria-describedby={hintId}
-          className="grid justify-center gap-[3px] [grid-auto-flow:column]"
+          className="mx-auto grid justify-center gap-[3px] [grid-auto-flow:column]"
           style={{
             width: `min(100%, ${gridWidth}px)`,
             aspectRatio: `${gridWidth} / ${gridHeight}`,
