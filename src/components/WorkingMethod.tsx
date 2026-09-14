@@ -110,7 +110,7 @@ function WorkingMethod() {
               }`}
               onPlay={() => setExpanded(true)}
               onEnded={() => setExpanded(false)}
-              src="/working-method.mp4"
+              src="https://cdn.jsdelivr.net/gh/emkataumre/portfolio@df6d49c92827df90db8de06085577a073dddfd9b/public/working-method.mp4"
               poster="/working-method-poster.jpg"
               controls
               playsInline
