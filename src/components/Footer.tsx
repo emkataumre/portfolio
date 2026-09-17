@@ -61,11 +61,11 @@ function FooterContent() {
   )
 }
 
-function Footer({ id }: { id?: string }) {
+function Footer() {
   const surface = useFooterSignal()
 
   return (
-    <footer ref={surface} id={id} className={`mt-30 ${SURFACE}`}>
+    <footer ref={surface} className={`mt-30 ${SURFACE}`}>
       <span className="footer-signal" aria-hidden="true" />
       <FooterContent />
     </footer>
