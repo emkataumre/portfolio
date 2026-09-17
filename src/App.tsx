@@ -4,6 +4,7 @@ import NowStrip from './components/NowStrip'
 import Page from './components/Page'
 import Section from './components/Section'
 import SelectedWork from './components/SelectedWork'
+import Technologies from './components/Technologies'
 import WorkingMethod from './components/WorkingMethod'
 
 function App() {
@@ -28,6 +29,9 @@ function App() {
       </Section>
       <section id="activity" className="mt-24">
         <ActivityGrid />
+        <div className="mx-auto w-full max-w-[720px] px-4">
+          <Technologies />
+        </div>
       </section>
     </Page>
   )
