@@ -29,6 +29,14 @@ function Contact() {
           >
             LinkedIn
           </a>
+          <a
+            href={site.linktree}
+            target="_blank"
+            rel="me noopener noreferrer"
+            className="underline decoration-line underline-offset-4 transition-colors hover:text-accent focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+          >
+            Linktree
+          </a>
         </div>
       </Reveal>
     </section>
