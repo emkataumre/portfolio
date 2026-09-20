@@ -50,7 +50,7 @@ function Hero() {
       </div>
       <Reveal
         delay={0.26}
-        className="order-first justify-self-start min-[760px]:order-none min-[760px]:justify-self-end"
+        className="order-first hidden justify-self-start min-[760px]:order-none min-[760px]:block min-[760px]:justify-self-end"
       >
         <motion.div style={reduced ? undefined : { y, scale, opacity }}>
           <motion.div

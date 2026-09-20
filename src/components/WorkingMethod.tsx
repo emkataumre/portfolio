@@ -77,10 +77,6 @@ function WorkingMethod() {
   return (
     <>
       <div className="min-[760px]:col-start-2">
-      <Reveal as="p" className="mb-7 text-muted">
-        At Inact, this method has put about 30,000 lines of agent-written code through senior
-        review.
-      </Reveal>
       <div className="grid gap-x-8 gap-y-7 min-[760px]:grid-cols-2">
         {principles.map(({ title, body }) => (
           <Reveal key={title} className="last:min-[760px]:col-span-2">
@@ -105,8 +101,10 @@ function WorkingMethod() {
           >
             <video
               ref={videoRef}
-              className={`pointer-events-auto aspect-video rounded-[10px] border border-line bg-[#0b0b0c] ${
-                expanded ? 'w-[min(92vw,calc(92vh*16/9))]' : 'h-full w-full'
+              className={`pointer-events-auto border border-line bg-[#0b0b0c] ${
+                expanded
+                  ? 'aspect-video w-screen rounded-none border-x-0 object-contain min-[760px]:w-[min(92vw,calc(92vh*16/9))] min-[760px]:rounded-[10px] min-[760px]:border-x'
+                  : 'aspect-video h-full w-full rounded-[10px]'
               }`}
               onPlay={() => setExpanded(true)}
               onEnded={() => setExpanded(false)}
@@ -121,10 +119,13 @@ function WorkingMethod() {
         </div>
       </Reveal>
       </div>
-      <Reveal as="div" className="min-[760px]:col-span-2 min-[760px]:mt-0">
+      <Reveal as="div" className="mt-14 min-[760px]:col-span-2 min-[760px]:mt-0">
         <section aria-labelledby="workflow-title">
-          <div className="border-b border-line pb-3">
-            <h3 id="workflow-title" className="text-base font-semibold tracking-[-0.01em]">
+          <div className="border-b border-line pb-4 text-center min-[760px]:pb-3 min-[760px]:text-left">
+            <h3
+              id="workflow-title"
+              className="text-2xl font-semibold tracking-[-0.03em] min-[760px]:text-base min-[760px]:tracking-[-0.01em]"
+            >
               Under the hood
             </h3>
           </div>
@@ -252,55 +253,155 @@ function WorkingMethod() {
             </div>
           </div>
 
-          <div className="mt-5 rounded-xl border border-line bg-surface p-4 min-[1100px]:hidden">
-            <ol aria-label="Ship workflow">
-              {shipStages.map(([title, body]) => (
-                <li key={title} className="relative pb-8 pl-5 last:pb-7">
-                  <span className="absolute top-2 bottom-0 left-0 border-l border-muted" aria-hidden="true" />
-                  <span className="absolute top-2 left-[-3px] size-[7px] rounded-full bg-muted" aria-hidden="true" />
-                  <div className="rounded-[10px] border border-line bg-bg px-4 py-3">
-                    <h4 className="text-sm font-semibold">{title}</h4>
-                    <p className="mt-0.5 text-xs text-muted">{body}</p>
+          <div
+            className="mt-5 min-[760px]:hidden"
+            aria-label="Ship and Verify Feature workflow"
+          >
+            <div className="relative pl-9">
+              <span
+                className="absolute top-5 bottom-0 left-[15px] w-px bg-line"
+                aria-hidden="true"
+              />
+              <div className="absolute top-0 left-0 flex size-8 items-center justify-center rounded-full bg-text text-xs font-semibold text-bg">
+                1
+              </div>
+              <div className="pb-8">
+                <h4 className="text-base font-semibold tracking-[-0.01em]">Ship builds</h4>
+                <p className="mt-1 text-sm leading-5 text-muted">
+                  From an agreed brief to code ready for independent review.
+                </p>
+                <ol className="mt-4 divide-y divide-line border-y border-line">
+                  {shipStages.map(([title, body], index) => (
+                    <li key={title} className="grid grid-cols-[1.5rem_1fr] gap-3 py-3">
+                      <span className="font-mono text-[0.6875rem] leading-5 text-muted" aria-hidden="true">
+                        0{index + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold">{title}</p>
+                        <p className="mt-0.5 text-xs leading-5 text-muted">{body}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            <div className="relative pl-9">
+              <span
+                className="absolute top-5 bottom-0 left-[15px] w-px bg-accent/35"
+                aria-hidden="true"
+              />
+              <div className="absolute top-0 left-0 flex size-8 items-center justify-center rounded-full bg-[#15783a] text-xs font-semibold text-white">
+                2
+              </div>
+              <div className="pb-8">
+                <h4 className="text-base font-semibold tracking-[-0.01em] text-text">
+                  Verify challenges
+                </h4>
+                <p className="mt-1 text-sm leading-5 text-muted">
+                  An independent agent tries to disprove the implementation.
+                </p>
+                <ol className="mt-4 space-y-2">
+                  {verificationStages.map((stage, index) => (
+                    <li
+                      key={stage}
+                      className="flex min-h-11 items-center gap-3 rounded-xl bg-accent-soft px-3 py-2.5"
+                    >
+                      <span className="font-mono text-[0.6875rem] text-[#15783a]" aria-hidden="true">
+                        0{index + 1}
+                      </span>
+                      <span className="text-sm font-semibold">{stage}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            <div className="relative pl-9">
+              <div className="absolute top-0 left-0 flex size-8 items-center justify-center rounded-full border border-text bg-bg text-xs font-semibold">
+                3
+              </div>
+              <div>
+                <h4 className="text-base font-semibold tracking-[-0.01em]">Evidence decides</h4>
+                <p className="mt-1 text-sm leading-5 text-muted">
+                  Delivery happens only when the result is green.
+                </p>
+
+                <div className="mt-5 rounded-xl bg-[#15783a] px-4 py-4 text-center text-white">
+                  <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em]">PASS</p>
+                  <p className="mt-1 text-sm font-semibold">Ship finalizes the authorized delivery.</p>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-surface p-4 text-center ring-1 ring-line">
+                    <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em]">FAIL</p>
+                    <p className="mt-1 text-sm font-semibold">Repair, then verify again.</p>
                   </div>
-                </li>
-              ))}
-            </ol>
+                  <div className="rounded-xl bg-surface p-4 text-center ring-1 ring-line">
+                    <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em] text-muted">
+                      BLOCKED
+                    </p>
+                    <p className="mt-1 text-sm font-semibold">Missing proof stops delivery.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <div className="relative rounded-[10px] border border-accent bg-accent-soft p-4">
-              <span className="absolute -top-7 left-4 h-7 border-l border-accent" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-[0.08em] text-accent">VERIFY FEATURE</h4>
-              <p className="mt-1 text-xs text-muted">Independent adversarial check</p>
-              <ol className="mt-4 space-y-3">
-                {verificationStages.map((stage, index) => (
-                  <li key={stage} className="flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-2.5 text-sm font-semibold">
-                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-accent text-[0.625rem] text-accent" aria-hidden="true">
-                      {index + 1}
-                    </span>
-                    {stage}
-                  </li>
-                ))}
-              </ol>
+          <div className="mt-5 hidden rounded-xl border border-line bg-surface p-5 min-[760px]:block min-[1100px]:hidden min-[900px]:p-6">
+            <div className="grid grid-cols-2 gap-4 min-[900px]:gap-6">
+              <section aria-labelledby="tablet-ship-title">
+                <div className="mb-3 flex items-baseline justify-between gap-3">
+                  <h4 id="tablet-ship-title" className="text-sm font-semibold">Ship builds</h4>
+                  <span className="font-mono text-[0.625rem] tracking-[0.08em] text-muted">01</span>
+                </div>
+                <ol aria-label="Ship workflow" className="divide-y divide-line rounded-[10px] border border-line bg-bg px-4">
+                  {shipStages.map(([title, body], index) => (
+                    <li key={title} className="grid grid-cols-[1.25rem_1fr] gap-2.5 py-3">
+                      <span className="font-mono text-[0.625rem] leading-5 text-muted" aria-hidden="true">0{index + 1}</span>
+                      <div>
+                        <p className="text-xs font-semibold leading-5">{title}</p>
+                        <p className="text-[0.6875rem] leading-4 text-muted">{body}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+
+              <section aria-labelledby="tablet-verify-title">
+                <div className="mb-3 flex items-baseline justify-between gap-3">
+                  <h4 id="tablet-verify-title" className="text-sm font-semibold text-accent">Verify challenges</h4>
+                  <span className="font-mono text-[0.625rem] tracking-[0.08em] text-accent">02</span>
+                </div>
+                <ol className="grid grid-cols-2 gap-2">
+                  {verificationStages.map((stage, index) => (
+                    <li key={stage} className="min-h-20 rounded-[10px] border border-accent/40 bg-accent-soft p-3">
+                      <span className="font-mono text-[0.625rem] text-accent" aria-hidden="true">0{index + 1}</span>
+                      <p className="mt-1 text-xs font-semibold leading-[1.35]">{stage}</p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
             </div>
 
-            <div className="mx-auto h-7 w-px bg-muted" aria-hidden="true" />
-            <div className="mx-auto flex size-24 rotate-45 items-center justify-center border border-text bg-bg">
-              <span className="-rotate-45 text-center text-xs font-semibold">RESULT?</span>
+            <div className="my-5 flex items-center gap-3" aria-hidden="true">
+              <span className="h-px flex-1 bg-line" />
+              <span className="font-mono text-[0.625rem] tracking-[0.08em] text-muted">EVIDENCE DECIDES</span>
+              <span className="h-px flex-1 bg-line" />
             </div>
-            <div className="mx-auto h-7 w-px bg-muted" aria-hidden="true" />
 
-            <div className="space-y-3">
-              <div className="rounded-[10px] border border-accent bg-accent-soft px-4 py-3">
-                <p className="text-xs font-semibold tracking-[0.08em] text-accent">PASS</p>
-                <p className="mt-1 text-sm font-semibold">Ship finalizes and makes the authorized delivery.</p>
+            <div className="grid grid-cols-3 gap-3 min-[900px]:gap-4">
+              <div className="rounded-[10px] bg-[#15783a] px-4 py-4 text-white">
+                <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em]">PASS</p>
+                <p className="mt-2 text-sm font-semibold leading-snug">Ship finalizes the authorized delivery.</p>
               </div>
-              <div className="rounded-[10px] border border-line bg-bg px-4 py-3">
-                <p className="text-xs font-semibold tracking-[0.08em]">FAIL</p>
-                <p className="mt-1 text-sm font-semibold">Ship reproduces and repairs the defect.</p>
-                <p className="mt-1 text-xs text-muted">Affected checks return to Verify Feature.</p>
+              <div className="rounded-[10px] border border-line bg-bg px-4 py-4">
+                <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em]">FAIL</p>
+                <p className="mt-2 text-sm font-semibold leading-snug">Repair, then verify again.</p>
               </div>
-              <div className="rounded-[10px] border border-line bg-bg px-4 py-3">
-                <p className="text-xs font-semibold tracking-[0.08em] text-muted">BLOCKED</p>
-                <p className="mt-1 text-sm font-semibold">Missing proof stops green delivery.</p>
+              <div className="rounded-[10px] border border-line bg-bg px-4 py-4">
+                <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em] text-muted">BLOCKED</p>
+                <p className="mt-2 text-sm font-semibold leading-snug">Missing proof stops delivery.</p>
               </div>
             </div>
           </div>

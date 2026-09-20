@@ -12,6 +12,9 @@ function App() {
     <Page>
       <Hero />
       <NowStrip />
+      <section id="activity" className="mt-24">
+        <ActivityGrid />
+      </section>
       <Section
         id="method"
         label="Working Method"
@@ -27,8 +30,7 @@ function App() {
       >
         <SelectedWork />
       </Section>
-      <section id="activity" className="mt-24">
-        <ActivityGrid />
+      <section className="mt-24">
         <div className="mx-auto w-full max-w-[720px] px-4">
           <Technologies />
         </div>

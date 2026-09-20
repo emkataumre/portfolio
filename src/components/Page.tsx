@@ -13,7 +13,7 @@ function Page({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-bg font-sans text-text">
       <div className="mx-auto grid max-w-[1240px] gap-x-12 px-6 pt-8 min-[900px]:grid-cols-[152px_minmax(0,1040px)] min-[900px]:px-8 min-[900px]:pt-12">
-        <aside className="relative z-30 self-start min-[900px]:sticky min-[900px]:top-12">
+        <aside className="sticky top-0 z-30 -mx-6 self-start bg-bg/95 px-6 min-[900px]:mx-0 min-[900px]:bg-transparent min-[900px]:px-0 min-[900px]:top-12">
           <Nav />
         </aside>
         <div className="min-w-0">

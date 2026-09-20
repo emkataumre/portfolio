@@ -1,18 +1,19 @@
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { EASE } from './ease'
 import { HookSidebar } from './ui/hook-sidebar'
 
 const items = [
   { label: 'Overview', href: '#overview' },
+  { label: 'Activity', href: '#activity' },
   { label: 'Method', href: '#method' },
   { label: 'Work', href: '#work' },
-  { label: 'Activity', href: '#activity' },
   { label: 'Contact', href: '#contact' },
 ]
 
 function Nav() {
   const [active, setActive] = useState(0)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const manualActive = useRef(false)
 
   useEffect(() => {
@@ -88,15 +89,70 @@ function Nav() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: EASE }}
     >
-      <HookSidebar
-        label="Emil Vladinov"
-        items={items}
-        value={active}
-        onChange={(index) => {
-          manualActive.current = true
-          setActive(index)
-        }}
-      />
+      <div className="hidden min-[900px]:block">
+        <HookSidebar
+          label="Emil Vladinov"
+          items={items}
+          value={active}
+          onChange={(index) => {
+            manualActive.current = true
+            setActive(index)
+          }}
+        />
+      </div>
+
+      <nav className="relative min-[900px]:hidden" aria-label="Main navigation">
+        <div className="flex h-14 items-center justify-between border-b border-line">
+          <a
+            href="#overview"
+            className="font-semibold tracking-[-0.02em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+            onClick={() => setMobileOpen(false)}
+          >
+            Emil Vladinov
+          </a>
+          <button
+            type="button"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation-links"
+            className="min-h-11 min-w-14 rounded-xl border border-line bg-surface px-3 text-sm font-semibold transition-colors active:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            onClick={() => setMobileOpen((open) => !open)}
+          >
+            {mobileOpen ? 'Close' : 'Menu'}
+          </button>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {mobileOpen && (
+            <motion.div
+              id="mobile-navigation-links"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              className="absolute inset-x-0 top-14 border-b border-line bg-bg py-2 shadow-[0_12px_24px_rgba(24,24,27,0.08)]"
+            >
+              {items.map((item, index) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  aria-current={index === active ? 'location' : undefined}
+                  className="flex min-h-11 items-center justify-between rounded-xl px-3 text-base font-medium transition-colors hover:bg-surface active:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+                  onClick={() => {
+                    manualActive.current = true
+                    setActive(index)
+                    setMobileOpen(false)
+                  }}
+                >
+                  {item.label}
+                  {index === active && (
+                    <span className="size-2 rounded-full bg-accent" aria-hidden="true" />
+                  )}
+                </a>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
     </motion.div>
   )
 }

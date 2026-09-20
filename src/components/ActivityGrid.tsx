@@ -1,11 +1,16 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import activity from '../activity/activity.json'
 import { EASE } from './ease'
 import Reveal from './Reveal'
 
 const WINDOW_DAYS = 120
 const GRID_ROWS = 3
+const metrics = [
+  { value: 30_000, suffix: '+', label: 'lines of code' },
+  { value: 200, suffix: '+', label: 'issues' },
+  { value: 350, suffix: '+', label: 'commits' },
+] as const
 
 const mix = (percent: number) =>
   `color-mix(in oklab, var(--color-accent) ${percent}%, var(--color-surface))`
@@ -37,6 +42,34 @@ function labelFor(index: number) {
     timeZone: 'UTC',
   })
   return `${date} · ${count} ${count === 1 ? 'commit' : 'commits'}`
+}
+
+function CountUp({ value, suffix }: { value: number; suffix: string }) {
+  const reduceMotion = useReducedMotion() === true
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (reduceMotion) return
+
+    const startedAt = performance.now()
+    let frame = 0
+    const tick = (now: number) => {
+      const progress = Math.min((now - startedAt) / 900, 1)
+      setCount(Math.round(value * (1 - (1 - progress) ** 3)))
+      if (progress < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [reduceMotion, value])
+
+  return (
+    <span aria-label={`${value.toLocaleString('en-GB')} plus`}>
+      <span aria-hidden="true">
+        {(reduceMotion ? value : count).toLocaleString('en-GB').replaceAll(',', ' ')}
+        {suffix}
+      </span>
+    </span>
+  )
 }
 
 function ActivityGrid() {
@@ -83,10 +116,35 @@ function ActivityGrid() {
   }
 
   return (
-    <Reveal className="mx-auto w-full max-w-[720px] border-y border-line px-4 py-6">
-      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
+    <Reveal className="mx-auto w-full max-w-[720px] px-4">
+      <div
+        className="grid grid-cols-2 gap-x-8 gap-y-7 text-center min-[520px]:grid-cols-3 min-[520px]:text-left"
+        aria-label="At Inact, through senior review"
+      >
+        {metrics.map((metric, index) => (
+          <div key={metric.label} className={index === 0 ? 'col-span-2 min-[520px]:col-span-1' : ''}>
+            <strong
+              className={`block leading-none tracking-[-0.04em] ${
+                index === 0
+                  ? 'text-[clamp(3rem,15vw,4rem)] min-[520px]:text-[clamp(1.65rem,4vw,2.5rem)]'
+                  : 'text-[clamp(2rem,10vw,2.75rem)] min-[520px]:text-[clamp(1.65rem,4vw,2.5rem)]'
+              }`}
+            >
+              <CountUp value={metric.value} suffix={metric.suffix} />
+            </strong>
+            <span className="mt-2 block font-mono text-[0.6875rem] uppercase tracking-[0.06em] text-muted">
+              {metric.label}
+            </span>
+          </div>
+        ))}
+        <p className="col-span-2 text-sm text-muted min-[520px]:col-span-3 min-[520px]:text-left min-[520px]:text-xs">
+          At Inact, through senior review.
+        </p>
+      </div>
+
+      <div className="mt-12 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
         <h2 id={titleId} className="text-lg font-semibold tracking-[-0.02em]">
-          {displayedCommitTotal} commits in 4 months
+          {displayedCommitTotal} commits across accounts
         </h2>
         <p
           className="flex items-center gap-1.5 font-mono text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-accent"
