@@ -46,10 +46,25 @@ function labelFor(index: number) {
 
 function CountUp({ value, suffix }: { value: number; suffix: string }) {
   const reduceMotion = useReducedMotion() === true
+  const ref = useRef<HTMLSpanElement>(null)
+  const [isInView, setIsInView] = useState(false)
   const [count, setCount] = useState(0)
 
   useEffect(() => {
-    if (reduceMotion) return
+    const element = ref.current
+    if (!element || reduceMotion) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      setIsInView(true)
+      observer.disconnect()
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [reduceMotion])
+
+  useEffect(() => {
+    if (reduceMotion || !isInView) return
 
     const startedAt = performance.now()
     let frame = 0
@@ -60,10 +75,10 @@ function CountUp({ value, suffix }: { value: number; suffix: string }) {
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [reduceMotion, value])
+  }, [isInView, reduceMotion, value])
 
   return (
-    <span aria-label={`${value.toLocaleString('en-GB')} plus`}>
+    <span ref={ref} aria-label={`${value.toLocaleString('en-GB')} plus`}>
       <span aria-hidden="true">
         {(reduceMotion ? value : count).toLocaleString('en-GB').replaceAll(',', ' ')}
         {suffix}
