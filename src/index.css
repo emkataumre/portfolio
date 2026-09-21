@@ -46,12 +46,12 @@ html {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 68ch;
-  height: 38em;
+  width: 84ch;
+  height: 47em;
   margin: 0;
   color: #262629;
   font-family: "Cascadia Mono", ui-monospace, monospace;
-  font-size: calc(100cqi / 40.8);
+  font-size: calc(100cqi / 50.4);
   font-weight: 500;
   font-variant-ligatures: none;
   line-height: 1;
