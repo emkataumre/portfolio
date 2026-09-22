@@ -17,10 +17,12 @@ function ActivityPace() {
               className="activity-pace-avatar"
               style={{ animationDuration: `${(1.6 * Math.sqrt(PACE[0].events / events)).toFixed(2)}s` }}
             >
-              <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-                <circle cx="16" cy="11" r="4" fill="currentColor" />
-                <path d="M7.5 25a8.5 8.5 0 0 1 17 0" fill="currentColor" />
-              </svg>
+              {kind === 'emil' ? 'EV' : (
+                <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                  <circle cx="16" cy="11" r="4" fill="currentColor" />
+                  <path d="M7.5 25a8.5 8.5 0 0 1 17 0" fill="currentColor" />
+                </svg>
+              )}
             </span>
           </div>
         ))}
