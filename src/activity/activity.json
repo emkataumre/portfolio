@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-22T10:00:44.780Z",
+  "generatedAt": "2026-09-22T15:00:48.273Z",
   "timeZone": "Europe/Copenhagen",
   "days": {
     "from": "2025-09-23",
@@ -749,7 +749,7 @@
     "linesAdded": 613298,
     "linesRemoved": 159153,
     "pullRequestsMerged": 164,
-    "issuesOpenedNowClosed": 474,
+    "issuesOpenedNowClosed": 479,
     "repositories": 22,
     "claudeSessions": 900,
     "claudeActiveDays": 97
