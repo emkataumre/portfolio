@@ -22,7 +22,7 @@ const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000];
 // The largest instant that a Date can hold, in milliseconds.
 const MAX_TIMESTAMP_MS = 8.64e15;
 const NETWORK_FAILURE =
-  /\b(?:HTTP 5\d{2}|EOF|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND)\b|timeout|TLS handshake|dial tcp|connection reset|no such host|Bad Gateway|Service Unavailable|Gateway Time-?out/i;
+  /\b(?:HTTP 5\d{2}|EOF|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|wsarecv)\b|timeout|TLS handshake|dial tcp|connection reset|forcibly closed by the remote host|no such host|Bad Gateway|Service Unavailable|Gateway Time-?out/i;
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputPath = resolve(rootDir, 'src/activity/activity.json');
@@ -45,14 +45,32 @@ const REPOS_QUERY = `query($cursor: String) {
   }
 }`;
 
-const HISTORY_QUERY = `query($owner: String!, $name: String!, $authorId: ID!, $since: GitTimestamp!, $cursor: String) {
+const BRANCHES_QUERY = `query($owner: String!, $name: String!, $authorId: ID!, $since: GitTimestamp!, $cursor: String) {
   repository(owner: $owner, name: $name) {
-    defaultBranchRef {
+    refs(refPrefix: "refs/heads/", first: 20, after: $cursor) {
+      pageInfo { hasNextPage endCursor }
+      nodes { name
+        target {
+          ... on Commit {
+            history(author: {id: $authorId}, since: $since, first: 100) {
+              pageInfo { hasNextPage endCursor }
+              nodes { oid authoredDate additions deletions messageHeadline }
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
+const HISTORY_QUERY = `query($owner: String!, $name: String!, $ref: String!, $authorId: ID!, $since: GitTimestamp!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    ref(qualifiedName: $ref) {
       target {
         ... on Commit {
           history(author: {id: $authorId}, since: $since, first: 100, after: $cursor) {
             pageInfo { hasNextPage endCursor }
-            nodes { authoredDate additions deletions messageHeadline }
+            nodes { oid authoredDate additions deletions messageHeadline }
           }
         }
       }
@@ -263,14 +281,14 @@ function listRepositories(token, label) {
   return { viewerId, repositories };
 }
 
-// Walks the default branch of one repository and returns the author's commits.
-function walkRepository(token, repository, viewerId, since, label) {
-  const commits = [];
+// Walks every current branch of one repository and returns each authored commit once.
+export function walkRepository(token, repository, viewerId, since, label, query = graphql) {
+  const commits = new Map();
   let cursor = null;
   for (;;) {
-    const data = graphql(
+    const data = query(
       token,
-      HISTORY_QUERY,
+      BRANCHES_QUERY,
       {
         owner: repository.owner.login,
         name: repository.name,
@@ -278,15 +296,34 @@ function walkRepository(token, repository, viewerId, since, label) {
         since,
         cursor,
       },
-      `${label} commit walk`,
+      `${label} branch walk`,
     );
-    const history = data.repository?.defaultBranchRef?.target?.history;
-    if (!history) break;
-    commits.push(...history.nodes.filter(Boolean));
-    if (!history.pageInfo.hasNextPage) break;
-    cursor = history.pageInfo.endCursor;
+    const branches = data.repository?.refs;
+    if (!branches) break;
+    for (const branch of branches.nodes.filter(Boolean)) {
+      let history = branch.target?.history;
+      while (history) {
+        for (const commit of history.nodes.filter(Boolean)) commits.set(commit.oid, commit);
+        if (!history.pageInfo.hasNextPage) break;
+        history = query(
+          token,
+          HISTORY_QUERY,
+          {
+            owner: repository.owner.login,
+            name: repository.name,
+            ref: `refs/heads/${branch.name}`,
+            authorId: viewerId,
+            since,
+            cursor: history.pageInfo.endCursor,
+          },
+          `${label} commit walk`,
+        ).repository?.ref?.target?.history;
+      }
+    }
+    if (!branches.pageInfo.hasNextPage) break;
+    cursor = branches.pageInfo.endCursor;
   }
-  return commits;
+  return [...commits.values()];
 }
 
 // Collects the GitHub side of the window for every account.

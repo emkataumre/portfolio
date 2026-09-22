@@ -1,6 +1,33 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { mergeCommits, windowDays } from './activity.mjs'
+import { mergeCommits, walkRepository, windowDays } from './activity.mjs'
+
+test('walkRepository includes branch commits once across refs', () => {
+  const mainCommit = { oid: 'main', authoredDate: '2026-09-22T10:00:00Z' }
+  const branchCommit = { oid: 'branch', authoredDate: '2026-09-22T12:00:00Z' }
+  const query = (_token, _document, variables) => {
+    if (variables.ref) {
+      assert.equal(variables.ref, 'refs/heads/work')
+      assert.equal(variables.cursor, 'more-commits')
+      return { repository: { ref: { target: { history: { pageInfo: { hasNextPage: false }, nodes: [branchCommit] } } } } }
+    }
+    return {
+      repository: {
+        refs: {
+          pageInfo: variables.cursor
+            ? { hasNextPage: false }
+            : { hasNextPage: true, endCursor: 'more-refs' },
+          nodes: variables.cursor
+            ? [{ name: 'work', target: { history: { pageInfo: { hasNextPage: true, endCursor: 'more-commits' }, nodes: [mainCommit] } } }]
+            : [{ name: 'main', target: { history: { pageInfo: { hasNextPage: false }, nodes: [mainCommit] } } }],
+        },
+      },
+    }
+  }
+
+  const commits = walkRepository('', { owner: { login: 'owner' }, name: 'repo' }, 'author', '2026-09-21T00:00:00Z', 'test', query)
+  assert.deepEqual(commits.map((commit) => commit.oid), ['main', 'branch'])
+})
 
 test('mergeCommits preserves historical counts when a repository is deleted', () => {
   const previousDays = windowDays('2026-09-13')
