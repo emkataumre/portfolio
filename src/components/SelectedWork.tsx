@@ -10,10 +10,10 @@ const entries = [
     status: 'In final review for the September release.',
   },
   {
-    title: 'Mentions: @ a colleague, # a record.',
-    body: 'Type @ to bring a colleague into a comment or task, # to link the record it is about. Search ranks the match as you type.',
-    scale: '5 000+',
-    status: 'In final review for the September release.',
+    title: 'Dynamic Templates: one definition, many insights.',
+    body: 'Create one insight template and generate linked copies for a dataset. Publish changes centrally while each copy keeps its local description and default view.',
+    scale: 'Frontend and backend',
+    status: '',
   },
   {
     title: 'This website',
