@@ -11,8 +11,8 @@ const entries = [
   },
   {
     title: 'Dynamic Templates: one definition, many insights.',
-    body: 'Create one insight template and generate linked copies for a dataset. Publish changes centrally while each copy keeps its local description and default view.',
-    scale: 'Frontend and backend',
+    body: 'Clients repeatedly asked for a way to create one insight template, generate linked copies for a dataset, and publish updates centrally. Each copy keeps its local description and default view.',
+    scale: '14 000+ lines across 91 files',
     status: '',
   },
   {
