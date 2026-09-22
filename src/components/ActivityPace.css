@@ -1,0 +1,186 @@
+.activity-pace {
+  --pace-avatar-size: 64px;
+  --pace-accent: #147b40;
+}
+
+.activity-pace h2 {
+  font-size: clamp(2.5rem, 7vw, 4rem);
+  font-weight: 680;
+  letter-spacing: -0.038em;
+  line-height: 1;
+}
+
+.activity-pace h2 span { color: var(--color-accent); }
+
+.activity-pace-intro {
+  max-width: 42rem;
+  margin-top: 1rem;
+  color: var(--color-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.activity-pace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem 1rem;
+  margin-top: 2.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-text);
+}
+
+.activity-pace-header p {
+  color: var(--color-muted);
+  font-size: .8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-pace-header button {
+  min-height: 44px;
+  padding: .5rem .875rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.activity-pace-header button:hover { background: var(--color-accent-soft); }
+.activity-pace-header button:focus-visible { outline: 2px solid var(--pace-accent); outline-offset: 3px; }
+
+.activity-pace-lane {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(180px, 260px) 96px;
+  align-items: center;
+  gap: 1rem;
+  min-height: 148px;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.activity-pace-identity h3 {
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -.025em;
+  line-height: 1.2;
+}
+
+.activity-pace-identity p {
+  margin-top: .5rem;
+  color: var(--color-muted);
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
+.activity-pace-track {
+  position: relative;
+  width: 100%;
+  max-width: 260px;
+  height: 80px;
+  isolation: isolate;
+}
+
+.activity-pace-rail {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.activity-pace-rail::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(var(--pace-avatar-size) / 2);
+  right: calc(var(--pace-avatar-size) / 2);
+  height: 2px;
+  background: var(--color-line);
+}
+
+.activity-pace-rail::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 8px);
+  left: calc(var(--pace-avatar-size) / 2);
+  right: calc(var(--pace-avatar-size) / 2);
+  height: 16px;
+  border-left: 2px solid #b6c2b8;
+  border-right: 2px solid #b6c2b8;
+}
+
+.activity-pace-avatar {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: var(--pace-avatar-size);
+  height: var(--pace-avatar-size);
+  border: 4px solid var(--color-bg);
+  border-radius: 50%;
+  font-size: 1.125rem;
+  font-weight: 720;
+  letter-spacing: -.03em;
+  animation: activity-pace-travel ease-in-out infinite alternate;
+}
+
+.activity-pace-lane--emil .activity-pace-avatar {
+  background: var(--pace-accent);
+  color: #fff;
+  box-shadow: 0 7px 18px #164c292e;
+}
+
+.activity-pace-lane--average .activity-pace-avatar {
+  background: #dde4dc;
+  color: #3c5142;
+}
+
+@keyframes activity-pace-travel {
+  to { left: calc(100% - var(--pace-avatar-size)); }
+}
+
+.activity-pace[data-paused='true'] .activity-pace-avatar { animation-play-state: paused; }
+
+.activity-pace-rate { text-align: right; }
+.activity-pace-rate strong {
+  display: block;
+  color: var(--pace-accent);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.038em;
+  line-height: 1;
+}
+.activity-pace-lane--average .activity-pace-rate strong { color: var(--color-text); }
+.activity-pace-rate span {
+  display: block;
+  margin-top: .4rem;
+  color: var(--color-muted);
+  font-size: .6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.activity-pace-method {
+  max-width: 65ch;
+  margin-top: 1.5rem;
+  color: var(--color-muted);
+  font-size: .75rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .activity-pace-lane { grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; }
+  .activity-pace-track { grid-column: 1 / -1; grid-row: 2; margin-top: .5rem; }
+  .activity-pace-rate { grid-column: 2; grid-row: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-pace-header button { display: none; }
+  .activity-pace-avatar { animation: none; }
+  .activity-pace-lane--emil .activity-pace-avatar { left: calc(100% - var(--pace-avatar-size)); }
+}

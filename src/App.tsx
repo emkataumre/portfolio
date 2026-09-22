@@ -1,4 +1,5 @@
 import ActivityGrid from './components/ActivityGrid'
+import ActivityPace from './components/ActivityPace'
 import Hero from './components/Hero'
 import NowStrip from './components/NowStrip'
 import Page from './components/Page'
@@ -14,6 +15,7 @@ function App() {
       <NowStrip />
       <section id="activity" className="mt-24">
         <ActivityGrid />
+        <ActivityPace />
       </section>
       <Section
         id="method"
