@@ -4,8 +4,14 @@ import activity from '../activity/activity.json'
 import { EASE } from './ease'
 import Reveal from './Reveal'
 
-const WINDOW_DAYS = 120
 const GRID_ROWS = 3
+const DAY_MS = 86_400_000
+const activityDate = new Intl.DateTimeFormat('en-GB', {
+  timeZone: activity.timeZone,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
 const metrics = [
   { value: 30_000, suffix: '+', label: 'lines of code' },
   { value: 200, suffix: '+', label: 'issues' },
@@ -22,26 +28,35 @@ function cellColor(count: number, maximum: number) {
   return mix(Math.round(38 + relative * 62))
 }
 
-/**
- * The day of one cell. The first count in the file is `days.from`, so the day of
- * a cell is `days.from` plus its index. The last cell is not always today: the
- * collector rewrites the file only when a measurement moves.
- */
-function dayAt(index: number) {
-  const day = new Date(`${activity.days.from}T00:00:00Z`)
-  day.setUTCDate(day.getUTCDate() + index)
-  return day
+function todayKey() {
+  const parts = activityDate.formatToParts(new Date())
+  const part = (type: string) => parts.find((item) => item.type === type)?.value
+  return `${part('year')}-${part('month')}-${part('day')}`
 }
 
-function labelFor(index: number) {
-  const count = activity.commits[index]
-  const date = dayAt(index).toLocaleDateString('en-GB', {
+function windowDays(today: string) {
+  const end = new Date(`${today}T00:00:00Z`)
+  const start = new Date(end)
+  start.setUTCDate(1)
+  start.setUTCMonth(start.getUTCMonth() - 4)
+  const lastDayOfMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate()
+  start.setUTCDate(Math.min(end.getUTCDate(), lastDayOfMonth))
+  return Array.from(
+    { length: Math.round((end.getTime() - start.getTime()) / DAY_MS) + 1 },
+    (_, index) => new Date(start.getTime() + index * DAY_MS).toISOString().slice(0, 10),
+  )
+}
+
+function labelFor(day: string, count: number | null) {
+  const date = new Date(`${day}T00:00:00Z`).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
   })
-  return `${date} · ${count} ${count === 1 ? 'commit' : 'commits'}`
+  return count === null
+    ? `${date} · Awaiting next refresh`
+    : `${date} · ${count} ${count === 1 ? 'commit' : 'commits'}`
 }
 
 function CountUp({ value, suffix }: { value: number; suffix: string }) {
@@ -89,6 +104,16 @@ function CountUp({ value, suffix }: { value: number; suffix: string }) {
 
 function ActivityGrid() {
   const reduceMotion = useReducedMotion() === true
+  const [today, setToday] = useState(todayKey)
+  useEffect(() => {
+    const updateToday = () => setToday(todayKey())
+    const timer = window.setInterval(updateToday, 60_000)
+    document.addEventListener('visibilitychange', updateToday)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', updateToday)
+    }
+  }, [])
   // The tab stop remembers the last cell the keyboard reached, so the grid keeps
   // one tab stop and returns to where it was.
   const [visited, setVisited] = useState<number | null>(null)
@@ -96,20 +121,22 @@ function ActivityGrid() {
   const titleId = useId()
   const hintId = useId()
 
-  const total = activity.commits.length
-  const start = Math.max(0, total - WINDOW_DAYS)
-  const indexes = Array.from({ length: total - start }, (_, offset) => start + offset)
-  const counts = indexes.map((index) => activity.commits[index])
-  const commitTotal = counts.reduce((sum, count) => sum + count, 0)
-  const displayedCommitTotal = commitTotal > 700 ? '700+' : commitTotal
-  const maximum = Math.max(1, ...counts)
-  const columns = Math.ceil(indexes.length / GRID_ROWS)
+  const days = windowDays(today)
+  const dataStart = Date.parse(`${activity.days.from}T00:00:00Z`)
+  const counts = days.map((day) => {
+    if (day > activity.days.to) return null
+    const index = Math.round((Date.parse(`${day}T00:00:00Z`) - dataStart) / DAY_MS)
+    return activity.commits[index] ?? null
+  })
+  const commitTotal = counts.reduce<number>((sum, count) => sum + (count ?? 0), 0)
+  const maximum = Math.max(1, ...counts.map((count) => count ?? 0))
+  const columns = Math.ceil(days.length / GRID_ROWS)
   const gridWidth = columns * 14 - 3
   const gridHeight = GRID_ROWS * 14 - 3
-  const tabStop = visited ?? start
+  const tabStop = visited ?? 0
 
   const move = (from: number, delta: number) => {
-    const next = Math.min(total - 1, Math.max(start, from + delta))
+    const next = Math.min(days.length - 1, Math.max(0, from + delta))
     setVisited(next)
     cellRefs.current.get(next)?.focus()
   }
@@ -159,7 +186,7 @@ function ActivityGrid() {
 
       <div className="mt-12 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
         <h2 id={titleId} className="text-lg font-semibold tracking-[-0.02em]">
-          {displayedCommitTotal} commits across accounts
+          {commitTotal} commits across accounts (4 months)
         </h2>
         <p
           className="flex items-center gap-1.5 font-mono text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-accent"
@@ -188,26 +215,26 @@ function ActivityGrid() {
             gridTemplateRows: `repeat(${GRID_ROWS}, minmax(0, 1fr))`,
           }}
         >
-          {indexes.map((index, offset) => (
+          {days.map((day, index) => (
             <motion.div
-              key={index}
+              key={day}
               ref={(node) => {
                 if (node) cellRefs.current.set(index, node)
                 else cellRefs.current.delete(index)
               }}
               tabIndex={index === tabStop ? 0 : -1}
               role="img"
-              aria-label={labelFor(index)}
-              title={labelFor(index)}
+              aria-label={labelFor(day, counts[index])}
+              title={labelFor(day, counts[index])}
               className="aspect-square rounded-[3px] outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
-              style={{ backgroundColor: cellColor(activity.commits[index], maximum) }}
+              style={{ backgroundColor: cellColor(counts[index] ?? 0, maximum) }}
               initial={reduceMotion ? false : { opacity: 0, scale: 0.4 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, amount: 0.6 }}
               transition={{
                 duration: reduceMotion ? 0 : 0.24,
                 ease: EASE,
-                delay: reduceMotion ? 0 : Math.floor(offset / GRID_ROWS) * 0.045,
+                delay: reduceMotion ? 0 : Math.floor(index / GRID_ROWS) * 0.045,
               }}
               onFocus={() => setVisited(index)}
               onKeyDown={(event) => onKeyDown(event, index)}
