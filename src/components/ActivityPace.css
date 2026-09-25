@@ -22,6 +22,17 @@
   position: relative;
 }
 
+/* A light box that stands out through a green-tinted edge, a faint grid, and a soft glow. */
+.activity-pace-track {
+  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, var(--color-line));
+  background-color: var(--color-surface);
+  background-image:
+    radial-gradient(ellipse 60% 55% at 50% 100%, color-mix(in oklab, var(--color-accent) 10%, transparent), transparent 70%),
+    linear-gradient(#18181b08 1px, transparent 1px),
+    linear-gradient(90deg, #18181b08 1px, transparent 1px);
+  background-size: auto, 32px 32px, 32px 32px;
+}
+
 /* The runners share the box size, so the inset path follows the box outline. */
 .activity-pace-runners {
   position: absolute;

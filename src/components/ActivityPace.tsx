@@ -17,7 +17,7 @@ function ActivityPace({ children }: { children: ReactNode }) {
         <span>{MULTIPLE}×</span> the average pace
       </h2>
       <div className="activity-pace-lap">
-        <div className="dark-band relative overflow-hidden rounded-[28px] bg-surface py-16 text-text min-[760px]:py-20">
+        <div className="activity-pace-track relative overflow-hidden rounded-[28px] py-16 min-[760px]:py-20">
           {children}
         </div>
         <div className="activity-pace-runners" role="img" aria-label="Two avatars lap the box. The first laps faster than the second.">
