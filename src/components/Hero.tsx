@@ -33,15 +33,27 @@ function Hero() {
     <section
       ref={heroRef}
       id="overview"
-      className="mt-8 grid scroll-mt-8 grid-cols-1 items-center gap-14 min-[760px]:mt-12 min-[760px]:grid-cols-[1.3fr_1fr]"
+      className="relative isolate mt-8 grid scroll-mt-8 grid-cols-1 items-center gap-14 py-6 min-[760px]:mt-12 min-[760px]:grid-cols-[1.6fr_1fr] min-[760px]:py-12"
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -inset-y-10 -z-10 min-[760px]:-inset-x-8 bg-[radial-gradient(circle,#d4d4cf_1px,transparent_1.2px)] bg-size-[18px_18px] [mask-image:radial-gradient(ellipse_75%_70%_at_60%_50%,#000_30%,transparent_75%)]"
+      />
       <div>
+        <Reveal
+          as="p"
+          delay={0.04}
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 font-mono text-[0.75rem] text-muted"
+        >
+          <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
+          Software engineer · Copenhagen
+        </Reveal>
         <Reveal
           as="h1"
           delay={0.1}
-          className="text-[clamp(2.4rem,5vw,3.6rem)] leading-[1.02] font-bold tracking-[-0.035em]"
+          className="text-[clamp(2.6rem,5.4vw,4rem)] leading-[0.98] font-bold tracking-[-0.045em]"
         >
-          Agentic development. From idea to production.
+          Agentic development. From idea to <span className="text-accent">production.</span>
         </Reveal>
         <Reveal as="p" delay={0.18} className="mt-5.5 max-w-[470px] text-xl leading-[1.45] text-muted">
           I turn ideas into reliable software by combining AI coding agents with software
@@ -56,7 +68,7 @@ function Hero() {
           <motion.div
             animate={{ x: profileOpen ? 'var(--profile-card-shift)' : '0px' }}
             transition={reduced ? { duration: 0 } : CARD_TRANSITION}
-            className="relative w-55 [--profile-card-shift:0px] min-[760px]:w-70 min-[1060px]:[--profile-card-shift:-200px]"
+            className="relative w-55 [--profile-card-shift:0px] min-[760px]:w-76 min-[1060px]:[--profile-card-shift:-200px]"
           >
             <div
               className={`relative rounded-[28px] border border-line bg-surface p-2 transition-[border-radius] duration-200 ${

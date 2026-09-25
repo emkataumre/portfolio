@@ -32,6 +32,20 @@ html {
   scroll-behavior: smooth;
 }
 
+/* A dark band. The theme tokens are redefined here, so the components inside keep their classes. */
+.activity-band {
+  --color-surface: #0e1310;
+  --color-text: #f3f5f2;
+  --color-muted: #8f9a92;
+  --color-line: #26302a;
+  --color-accent: #3ddc84;
+  background-image:
+    radial-gradient(ellipse 60% 55% at 50% 100%, color-mix(in oklab, #3ddc84 16%, transparent), transparent 70%),
+    linear-gradient(#ffffff08 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+  background-size: auto, 32px 32px, 32px 32px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

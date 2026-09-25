@@ -168,8 +168,8 @@ function ActivityGrid() {
             <strong
               className={`block leading-none tracking-[-0.04em] ${
                 index === 0
-                  ? 'text-[clamp(3rem,15vw,4rem)] min-[520px]:text-[clamp(1.65rem,4vw,2.5rem)]'
-                  : 'text-[clamp(2rem,10vw,2.75rem)] min-[520px]:text-[clamp(1.65rem,4vw,2.5rem)]'
+                  ? 'text-[clamp(3rem,15vw,4rem)] min-[520px]:text-[clamp(2rem,4.2vw,3rem)]'
+                  : 'text-[clamp(2rem,10vw,2.75rem)] min-[520px]:text-[clamp(2rem,4.2vw,3rem)]'
               }`}
             >
               <CountUp value={metric.value} suffix={metric.suffix} />
