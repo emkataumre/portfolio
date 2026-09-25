@@ -131,7 +131,7 @@ function WorkingMethod() {
           </div>
 
           <div
-            className="dark-band mt-5 hidden overflow-hidden rounded-[28px] bg-surface p-10 text-text min-[1100px]:block"
+            className="mt-5 hidden overflow-hidden rounded-xl border border-line bg-surface p-7 min-[1100px]:block"
             aria-label="Ship and Verify Feature workflow"
           >
             <p className="sr-only">
@@ -167,7 +167,7 @@ function WorkingMethod() {
               <span className="absolute bottom-0 left-1/2 -translate-x-1/2 border-x-[4px] border-t-[6px] border-x-transparent border-t-muted" />
             </div>
 
-            <div className="rounded-xl border border-accent bg-accent-soft p-5 shadow-[0_0_48px_-14px_var(--color-accent)]">
+            <div className="rounded-xl border border-accent bg-accent-soft p-5">
               <div className="flex items-baseline gap-3">
                 <h4 className="text-sm font-semibold tracking-[-0.01em] text-accent">
                   Verify Feature
@@ -243,7 +243,7 @@ function WorkingMethod() {
                   Missing proof stops the path
                 </p>
               </div>
-              <div className="rounded-xl border border-accent bg-accent-soft px-5 py-4 shadow-[0_0_48px_-14px_var(--color-accent)]">
+              <div className="rounded-xl border border-accent bg-accent-soft px-5 py-4">
                 <p className="text-[0.6875rem] font-semibold tracking-[0.08em] text-accent">PASS</p>
                 <p className="mt-1 text-[0.9375rem] leading-5 font-semibold tracking-[-0.01em]">
                   Ship finalizes and delivers
@@ -254,7 +254,7 @@ function WorkingMethod() {
           </div>
 
           <div
-            className="dark-band mt-5 rounded-[28px] bg-surface p-6 text-text min-[760px]:hidden"
+            className="mt-5 min-[760px]:hidden"
             aria-label="Ship and Verify Feature workflow"
           >
             <div className="relative pl-9">
@@ -307,7 +307,7 @@ function WorkingMethod() {
                       key={stage}
                       className="flex min-h-11 items-center gap-3 rounded-xl bg-accent-soft px-3 py-2.5"
                     >
-                      <span className="font-mono text-[0.6875rem] text-accent" aria-hidden="true">
+                      <span className="font-mono text-[0.6875rem] text-[#15783a]" aria-hidden="true">
                         0{index + 1}
                       </span>
                       <span className="text-sm font-semibold">{stage}</span>
@@ -327,7 +327,7 @@ function WorkingMethod() {
                   Delivery happens only when the result is green.
                 </p>
 
-                <div className="mt-5 rounded-xl bg-[#15783a] px-4 py-4 text-center text-white shadow-[0_0_48px_-14px_var(--color-accent)]">
+                <div className="mt-5 rounded-xl bg-[#15783a] px-4 py-4 text-center text-white">
                   <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em]">PASS</p>
                   <p className="mt-1 text-sm font-semibold">Ship finalizes the authorized delivery.</p>
                 </div>
@@ -348,7 +348,7 @@ function WorkingMethod() {
             </div>
           </div>
 
-          <div className="dark-band mt-5 hidden rounded-[28px] bg-surface p-6 text-text min-[760px]:block min-[1100px]:hidden min-[900px]:p-8">
+          <div className="mt-5 hidden rounded-xl border border-line bg-surface p-5 min-[760px]:block min-[1100px]:hidden min-[900px]:p-6">
             <div className="grid grid-cols-2 gap-4 min-[900px]:gap-6">
               <section aria-labelledby="tablet-ship-title">
                 <div className="mb-3 flex items-baseline justify-between gap-3">
@@ -391,7 +391,7 @@ function WorkingMethod() {
             </div>
 
             <div className="grid grid-cols-3 gap-3 min-[900px]:gap-4">
-              <div className="rounded-[10px] bg-[#15783a] px-4 py-4 text-white shadow-[0_0_48px_-14px_var(--color-accent)]">
+              <div className="rounded-[10px] bg-[#15783a] px-4 py-4 text-white">
                 <p className="font-mono text-[0.6875rem] font-semibold tracking-[0.08em]">PASS</p>
                 <p className="mt-2 text-sm font-semibold leading-snug">Ship finalizes the authorized delivery.</p>
               </div>

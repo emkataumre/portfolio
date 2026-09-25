@@ -1,42 +1,36 @@
-import Reveal from './Reveal'
 import './ActivityPace.css'
 
-const DAYS = 123
 const PACE = [
-  { kind: 'emil', label: 'EV', events: 377 + 212 },
-  { kind: 'average', label: 'Average', events: 17 + 9 },
+  { kind: 'emil', events: 377 + 212 },
+  { kind: 'average', events: 17 + 9 },
 ] as const
 const MULTIPLE = Math.floor(PACE[0].events / PACE[1].events)
 
 function ActivityPace() {
   return (
-    <Reveal className="activity-pace mx-auto mt-14 w-full max-w-[720px] px-4">
-      <section aria-labelledby="activity-pace-title">
-        <div className="activity-pace-head">
-          <h2 id="activity-pace-title">
-            <span>{MULTIPLE}×</span> the average pace
-          </h2>
-          <p>Commits and closed issues per day, last {DAYS} days.</p>
-        </div>
-        <ul className="activity-pace-lanes">
-          {PACE.map(({ kind, label, events }) => (
-            <li className={`activity-pace-lane activity-pace-lane--${kind}`} key={kind}>
-              <span className="activity-pace-label">{label}</span>
-              <span className="activity-pace-track" aria-hidden="true">
-                <span
-                  className="activity-pace-dot"
-                  style={{ animationDuration: `${(1.6 * Math.sqrt(PACE[0].events / events)).toFixed(2)}s` }}
-                />
-              </span>
-              <span className="activity-pace-rate">
-                {(events / DAYS).toFixed(2)}
-                <small> / day</small>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </Reveal>
+    <section className="activity-pace mx-auto mt-14 w-full max-w-[720px] px-4" aria-labelledby="activity-pace-title">
+      <h2 id="activity-pace-title">
+        <span>{MULTIPLE}×</span> the average pace
+      </h2>
+      <div className="activity-pace-tracks" role="img" aria-label="Two avatars compare activity pace. The first moves faster than the second.">
+        {PACE.map(({ kind, events }) => (
+          <div className={`activity-pace-track activity-pace-track--${kind}`} key={kind} aria-hidden="true">
+            <span className="activity-pace-rail" />
+            <span
+              className="activity-pace-avatar"
+              style={{ animationDuration: `${(1.6 * Math.sqrt(PACE[0].events / events)).toFixed(2)}s` }}
+            >
+              {kind === 'emil' ? 'EV' : (
+                <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                  <circle cx="16" cy="11" r="4" fill="currentColor" />
+                  <path d="M7.5 25a8.5 8.5 0 0 1 17 0" fill="currentColor" />
+                </svg>
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
