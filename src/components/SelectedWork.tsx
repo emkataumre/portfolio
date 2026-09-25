@@ -37,7 +37,7 @@ function SelectedWork() {
           viewport={{ once: true, amount: 0.4 }}
         >
           <Rule drawIndex={index} />
-          <Reveal className="group grid gap-4 py-8 min-[760px]:grid-cols-[1fr_auto] min-[760px]:gap-8">
+          <Reveal className="group grid gap-4 py-8 min-[1100px]:grid-cols-[1fr_auto] min-[1100px]:gap-8">
             <div>
               <p className="font-mono text-[0.6875rem] tracking-[0.08em] text-accent">
                 0{index + 1}
@@ -45,7 +45,7 @@ function SelectedWork() {
               <h3 className="mt-2 text-lg leading-snug font-semibold tracking-[-0.02em]">{title}</h3>
               <p className="mt-2 text-muted">{body}</p>
             </div>
-            <div className="min-[760px]:text-right">
+            <div className="min-[1100px]:text-right">
               <p className="text-[clamp(2.5rem,5vw,3.5rem)] leading-none font-bold tracking-[-0.045em] tabular-nums transition-colors group-hover:text-accent">
                 {scale}
               </p>

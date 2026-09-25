@@ -43,7 +43,7 @@ function Technologies() {
   return (
     <div className="grid gap-3">
       <Reveal>
-        <ul className="activity-band grid gap-px overflow-hidden rounded-[20px] bg-line min-[520px]:grid-cols-2">
+        <ul className="dark-band grid gap-px overflow-hidden rounded-[20px] bg-line min-[520px]:grid-cols-2">
           {agents.map(({ name, icon, color }) => (
             <li key={name} className="flex items-center gap-5 bg-surface px-6 py-7">
               <TechnologyMark path={icon.path} color={color} className="size-11 shrink-0" />
