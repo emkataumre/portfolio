@@ -12,15 +12,15 @@ const principles = [
   },
   {
     title: 'Small steps with tests',
-    body: 'Features are implemented and tested incrementally, adhering to thorough agenting coding verification concepts.',
+    body: 'Features are implemented and tested incrementally, each step verified before the next one starts.',
   },
   {
     title: 'Review in passes',
-    body: 'Security, dead code, duplication, error handling. Each error caught is surfaced back up the pipeline for fixes and re-review.',
+    body: 'Security, dead code, duplication, error handling. Each finding goes back up the pipeline for a fix and a re-review.',
   },
   {
     title: 'Verify at runtime',
-    body: 'The agents drive the app, query, the database, exercise the API and attempt to break the new code. Edge-cases surface here and are propped up the pipeline for fixes and re-review.',
+    body: 'Agents drive the app, query the database, exercise the API, and try to break the new code. Edge cases surface here and go back up the pipeline for a fix and a re-review.',
   },
 ]
 
@@ -411,14 +411,14 @@ function WorkingMethod() {
         as="p"
         className="mt-4 text-sm text-muted min-[760px]:col-span-2 min-[760px]:-mt-6 min-[760px]:max-w-[34rem] min-[760px]:justify-self-end min-[760px]:text-right"
       >
-        A version of this workflow, aimed towards software engineering teams can be found{' '}
+        A version of this workflow for software engineering teams is open source:{' '}
         <a
           href="https://github.com/solution8-com/agentic-playbook"
           target="_blank"
           rel="noopener noreferrer"
           className="text-accent underline-offset-2 hover:underline"
         >
-          here
+          agentic-playbook
         </a>
         .
       </Reveal>

@@ -18,7 +18,7 @@ const entries = [
   {
     title: 'This website',
     body: 'Planned and built using the same method. Mostly made from my phone :)',
-    scale: '2 000+',
+    scale: '3 300+ lines across 33 files',
     status: '',
   },
 ]
