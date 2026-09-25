@@ -1,21 +1,32 @@
+import type { ReactNode } from 'react'
 import './ActivityPace.css'
 
 const PACE = [
   { kind: 'emil', events: 377 + 212 },
   { kind: 'average', events: 17 + 9 },
 ] as const
+const MULTIPLE = Math.floor(PACE[0].events / PACE[1].events)
+/** Seconds for one lap of the fastest avatar. A square root compresses the gap, so the slow avatar still moves. */
+const LAP_SECONDS = 9
 
-function ActivityPace() {
+/** The dark activity box is the track. Two avatars lap its outline at their relative pace. */
+function ActivityPace({ children }: { children: ReactNode }) {
   return (
-    <section className="activity-pace mx-auto mt-24 w-full max-w-[720px] px-4" aria-labelledby="activity-pace-title">
-      <h2 id="activity-pace-title">pace</h2>
-      <div className="activity-pace-tracks" role="img" aria-label="Two avatars compare activity pace. The first moves faster than the second.">
-        {PACE.map(({ kind, events }) => (
-          <div className={`activity-pace-track activity-pace-track--${kind}`} key={kind} aria-hidden="true">
-            <span className="activity-pace-rail" />
+    <section className="activity-pace" aria-labelledby="activity-pace-title">
+      <h2 id="activity-pace-title">
+        <span>{MULTIPLE}×</span> the average pace
+      </h2>
+      <div className="activity-pace-lap">
+        <div className="activity-pace-track relative overflow-hidden rounded-[28px] py-16 min-[760px]:py-20">
+          {children}
+        </div>
+        <div className="activity-pace-runners" role="img" aria-label="Two avatars lap the box. The first laps faster than the second.">
+          {PACE.map(({ kind, events }) => (
             <span
-              className="activity-pace-avatar"
-              style={{ animationDuration: `${(1.6 * Math.sqrt(PACE[0].events / events)).toFixed(2)}s` }}
+              className={`activity-pace-avatar activity-pace-avatar--${kind}`}
+              key={kind}
+              aria-hidden="true"
+              style={{ animationDuration: `${(LAP_SECONDS * Math.sqrt(PACE[0].events / events)).toFixed(2)}s` }}
             >
               {kind === 'emil' ? 'EV' : (
                 <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
@@ -24,8 +35,8 @@ function ActivityPace() {
                 </svg>
               )}
             </span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   )

@@ -8,7 +8,7 @@ const entries = [
     text: 'I use agentic coding to land large features quickly and reliably in a large legacy codebase.',
   },
   {
-    label: 'Also',
+    label: 'Before',
     date: 'Summer 2026',
     role: 'Freelance AI Engineer at Solution 8',
     text: 'At Solution 8, I worked in a team built around agentic workflows, using shared skills and conventions to reliably ship agent-written code across both internal and external products. I contributed throughout the software lifecycle, from researching and shaping product features to planning, implementation, and testing. We also built internal productivity tools and open-sourced resources around agentic development.',

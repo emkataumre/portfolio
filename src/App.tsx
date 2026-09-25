@@ -13,9 +13,10 @@ function App() {
     <Page>
       <Hero />
       <NowStrip />
-      <section id="activity" className="mt-24">
-        <ActivityGrid />
-        <ActivityPace />
+      <section id="activity" className="mt-24 scroll-mt-20 min-[900px]:scroll-mt-8">
+        <ActivityPace>
+          <ActivityGrid />
+        </ActivityPace>
       </section>
       <Section
         id="method"
@@ -32,11 +33,13 @@ function App() {
       >
         <SelectedWork />
       </Section>
-      <section className="mt-24">
-        <div className="mx-auto w-full max-w-[720px] px-4">
-          <Technologies />
-        </div>
-      </section>
+      <Section
+        id="stack"
+        label="Technologies"
+        subline="The agents I ship with, and the stack I ship in."
+      >
+        <Technologies />
+      </Section>
     </Page>
   )
 }
