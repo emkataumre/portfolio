@@ -13,11 +13,10 @@ function App() {
     <Page>
       <Hero />
       <NowStrip />
-      <section id="activity" className="mt-24 scroll-mt-8">
-        <div className="dark-band relative overflow-hidden rounded-[28px] bg-surface py-16 text-text min-[760px]:py-20">
+      <section id="activity" className="mt-24 scroll-mt-20 min-[900px]:scroll-mt-8">
+        <ActivityPace>
           <ActivityGrid />
-          <ActivityPace />
-        </div>
+        </ActivityPace>
       </section>
       <Section
         id="method"
