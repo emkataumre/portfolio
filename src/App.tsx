@@ -34,11 +34,13 @@ function App() {
       >
         <SelectedWork />
       </Section>
-      <section className="mt-24">
-        <div className="mx-auto w-full max-w-[720px] px-4">
-          <Technologies />
-        </div>
-      </section>
+      <Section
+        id="stack"
+        label="Technologies"
+        subline="The agents I ship with, and the stack I ship in."
+      >
+        <Technologies />
+      </Section>
     </Page>
   )
 }

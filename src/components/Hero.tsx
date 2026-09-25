@@ -43,7 +43,7 @@ function Hero() {
         <Reveal
           as="p"
           delay={0.04}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 font-mono text-[0.75rem] text-muted"
+          className="mb-6 flex items-center gap-2 font-mono text-[0.75rem] tracking-[0.04em] text-muted uppercase"
         >
           <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
           Software engineer · Copenhagen

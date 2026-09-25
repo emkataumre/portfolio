@@ -51,10 +51,7 @@ function SelectedWork() {
               </p>
               <p className="mt-2 font-mono text-[0.75rem] text-muted">{detail}</p>
               {status && (
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 font-mono text-[0.6875rem] text-[#15783a]">
-                  <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
-                  {status}
-                </p>
+                <p className="mt-1 font-mono text-[0.75rem] text-[#15783a]">{status}</p>
               )}
             </div>
           </Reveal>
