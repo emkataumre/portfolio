@@ -108,12 +108,12 @@ function WorkingMethod() {
               }`}
               onPlay={() => setExpanded(true)}
               onEnded={() => setExpanded(false)}
-              src="https://cdn.jsdelivr.net/gh/emkataumre/portfolio@df6d49c92827df90db8de06085577a073dddfd9b/public/working-method.mp4"
+              src="https://cdn.jsdelivr.net/gh/emkataumre/portfolio@cea2d42f4f3935d9e6e91436fa2c7c3a937d8000/public/working-method.mp4"
               poster="/working-method-poster.jpg"
               controls
               playsInline
               preload="metadata"
-              aria-label="One feature, from idea to production, in 69 seconds. Silent."
+              aria-label="Watch me build one feature, Dynamic Templates, from plan to production, in 47 seconds. With sound."
             />
           </div>
         </div>
