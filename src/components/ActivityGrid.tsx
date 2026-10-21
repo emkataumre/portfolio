@@ -14,8 +14,8 @@ const activityDate = new Intl.DateTimeFormat('en-GB', {
 })
 const metrics = [
   { value: 30_000, suffix: '+', label: 'lines of code' },
-  { value: 200, suffix: '+', label: 'issues' },
-  { value: 350, suffix: '+', label: 'commits' },
+  { value: 300, suffix: '+', label: 'issues' },
+  { value: 550, suffix: '+', label: 'commits' },
 ] as const
 
 const mix = (percent: number) =>
