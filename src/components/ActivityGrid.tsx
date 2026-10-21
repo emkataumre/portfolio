@@ -13,7 +13,7 @@ const activityDate = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
 })
 const metrics = [
-  { value: 30_000, suffix: '+', label: 'lines of code' },
+  { value: 35_000, suffix: '+', label: 'lines of code' },
   { value: 300, suffix: '+', label: 'issues' },
   { value: 550, suffix: '+', label: 'commits' },
 ] as const
