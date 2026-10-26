@@ -1,14 +1,11 @@
 {
-  "generatedAt": "2026-10-23T10:05:56.507Z",
+  "generatedAt": "2026-10-26T10:15:39.630Z",
   "timeZone": "Europe/Copenhagen",
   "days": {
-    "from": "2025-10-24",
-    "to": "2026-10-23"
+    "from": "2025-10-27",
+    "to": "2026-10-26"
   },
   "commits": [
-    3,
-    6,
-    0,
     0,
     0,
     3,
@@ -370,12 +367,12 @@
     33,
     35,
     11,
-    3
+    3,
+    0,
+    0,
+    0
   ],
   "sessions": [
-    0,
-    0,
-    0,
     0,
     0,
     0,
@@ -737,21 +734,24 @@
     8,
     20,
     14,
-    4
+    6,
+    0,
+    0,
+    0
   ],
   "streak": {
-    "days": 19,
+    "days": 0,
     "endsOn": "2026-10-23"
   },
   "counters": {
-    "since": "2025-10-24",
-    "commits": 1990,
-    "linesAdded": 988455,
-    "linesRemoved": 414264,
+    "since": "2025-10-27",
+    "commits": 1981,
+    "linesAdded": 986739,
+    "linesRemoved": 413926,
     "pullRequestsMerged": 100,
     "issuesOpenedNowClosed": 457,
     "repositories": 21,
-    "claudeSessions": 1143,
+    "claudeSessions": 1145,
     "claudeActiveDays": 127
   }
 }
